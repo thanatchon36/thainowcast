@@ -118,7 +118,8 @@ def plot_nowcast_vs_actual(bt: pd.DataFrame, horizon: str, selections: list[tupl
         ax.plot(_ptime(s["period"]), s["nowcast"], lw=1.2, color=MODEL_COLORS.get(model, "#999"), label=label, marker="o", ms=2)
     ax.axhline(0, color="#999", lw=0.6)
     ax.set_title(title, fontsize=10)
-    ax.legend(fontsize=7, ncol=2)
+    # below the axes, so it can never sit on a crisis-period dip
+    ax.legend(fontsize=7.5, ncol=3, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.08))
     return _save(fig, path)
 
 
@@ -166,7 +167,7 @@ def plot_evolution(evo: pd.DataFrame, path: Path, title: str) -> Path:
             ax.fill_between(g["origin"], g["lo"], g["hi"], color=MODEL_COLORS.get(model, "#999"), alpha=0.15)
     ax.set_title(title, fontsize=10)
     ax.set_ylabel("nowcast (%)")
-    ax.legend(fontsize=6, ncol=3)
+    ax.legend(fontsize=7.5, frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     fig.autofmt_xdate()
     return _save(fig, path)
 

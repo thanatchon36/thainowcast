@@ -193,9 +193,10 @@ def main() -> None:
                        Patch(fc="#e9edf2", ec="0.7", label="other provinces (77 in total)")],
               loc="lower left", fontsize=6.5, frameon=False)
     ax.set_title("Thailand: provinces and areas used in the data", fontsize=9)
-    ax.text(0.99, 0.005, "Boundaries: geoBoundaries ADM1, © OpenStreetMap contributors (ODbL)",
-            transform=ax.transAxes, ha="right", va="bottom", fontsize=5, color="0.4")
-    fig.tight_layout()
+    # the credit goes under the frame: inside it, it collides with the legend
+    fig.text(0.98, 0.008, "Boundaries: geoBoundaries ADM1, © OpenStreetMap contributors (ODbL)",
+             ha="right", va="bottom", fontsize=5, color="0.4")
+    fig.tight_layout(rect=(0, 0.02, 1, 1))
     fig.savefig(FIG / "fig_map_thailand.png", dpi=200)
     plt.close(fig)
 
@@ -208,9 +209,10 @@ def main() -> None:
     ax = fig.add_axes((0, 0, 1, 1))
     ax.imshow(rgb_2016, extent=extent, interpolation="bilinear")
     draw_provinces(ax, provinces, edge="#6f8fbf", lw=0.25, alpha=0.18)
+    halo = [patheffects.withStroke(linewidth=2.2, foreground=NIGHT_SEA)]  # keeps labels legible over the glow
     for name, (lon, lat, ox, oy) in CITIES.items():
-        ax.annotate(name, (lon, lat), (lon + ox, lat + oy), fontsize=7, color="#e8eefc", alpha=0.9,
-                    arrowprops=dict(arrowstyle="-", lw=0.4, color="#e8eefc", alpha=0.6))
+        ax.annotate(name, (lon, lat), (lon + ox, lat + oy), fontsize=7, color="#e8eefc", path_effects=halo,
+                    arrowprops=dict(arrowstyle="-", lw=0.4, color="#e8eefc", alpha=0.6, shrinkA=3))
     ax.set_xlim(BBOX[0], BBOX[1])
     ax.set_ylim(BBOX[2], BBOX[3])
     ax.set_aspect(aspect)
@@ -219,7 +221,9 @@ def main() -> None:
             va="top", linespacing=1.0)
     ax.text(0.56, 0.285, "2016. Each glow is a town, a city,\na port or an industrial estate.",
             transform=ax.transAxes, fontsize=7.5, color="#9fb0d0", va="top")
-    ax.text(0.98, 0.008, credit, transform=ax.transAxes, fontsize=5, color="#7d8db0", ha="right", va="bottom")
+    # in the dark sea at bottom right, on two lines, clear of the southern lights
+    ax.text(0.98, 0.008, credit.replace(" · ", "\n"), transform=ax.transAxes, fontsize=5, color="#7d8db0",
+            ha="right", va="bottom", multialignment="right", path_effects=halo)
     fig.savefig(FIG / "fig_lights_thailand.png", dpi=220, facecolor=NIGHT_SEA)
     plt.close(fig)
 
