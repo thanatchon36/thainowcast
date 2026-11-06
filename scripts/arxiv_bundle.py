@@ -31,7 +31,8 @@ def main() -> int:
         shutil.rmtree(STAGE)
     (STAGE / "figures").mkdir(parents=True)
     (STAGE / "paper.tex").write_text(tex, encoding="utf-8")
-    figures = sorted(set(re.findall(r"\\includegraphics(?:\[[^\]]*\])?\{figures/([\w.-]+)\}", tex)))
+    # the optional argument of \includegraphics carries the alt text, which may itself hold brackets
+    figures = sorted(set(re.findall(r"\{figures/([\w.-]+)\}", tex)))
     for name in figures:
         shutil.copyfile(PAPER / "figures" / name, STAGE / "figures" / name)
     (STAGE / "00README.json").write_text(

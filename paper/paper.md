@@ -60,6 +60,26 @@ At an origin $t$, the information set $\Omega_t$ contains every observation whos
 
 ![Target series and evaluation regimes.](figures/fig_targets.png)
 
+## The geography of activity, seen from space
+
+Figure 3 places the registry on the map. Most official indicators are national aggregates, but two inputs are defined over areas: the NO2 series averages the tropospheric column over the three provinces of the Eastern Economic Corridor (EEC) and Samut Prakan, where Thailand's heavy industry and its main deep-sea port are concentrated, and the nighttime-lights series sums radiance over all {{geo:n_provinces}} provinces.
+
+![Thailand's provinces, with Bangkok, the Bangkok Metropolitan Region and the area over which the NO2 series is averaged. Boundaries: geoBoundaries ADM1 [Runfola et al., 2020], © OpenStreetMap contributors.](figures/fig_map_thailand.png){width=62%}
+
+Nighttime lights are the most intuitive of the alternative data families, and Figure 4 shows why. It is the 2016 Black Marble composite built by NASA from the VIIRS day/night band on the Suomi NPP satellite [Román et al., 2018], and unlike the synthetic panel of the empirical sections it is real data. The image is a map of where economic activity takes place: the Bangkok Metropolitan Region and the Eastern Seaboard form one continuous glow, the regional centres of Chiang Mai, Udon Thani, Khon Kaen, Nakhon Ratchasima, Hat Yai and Phuket stand out as bright points, the main highways appear as strings of lit towns, and {{geo:dark_land_2016}} percent of the country's land is essentially dark (brightness below 10 on the image's 0 to 255 scale).
+
+![Thailand at night, 2016: NASA Black Marble composite (3 km), with lights outside Thailand dimmed.](figures/fig_lights_thailand.png){width=74%}
+
+Figure 5 zooms in on the centre of the country in 2012 and 2016. The lit area along the Eastern Seaboard and on the corridor from Bangkok through Ayutthaya to Saraburi appears wider in 2016, as one would expect over four years in which the EEC was being built up; part of the difference may, however, come from processing rather than from activity, and the two images should not be differenced into a growth rate.
+
+![Bangkok and the Eastern Seaboard at night, 2012 and 2016 (NASA Black Marble composites).](figures/fig_lights_bkk_eec.png)
+
+Figure 6 puts numbers on the concentration. Summing image brightness within each province, the ten brightest provinces emit {{geo:share_top10_2016}} percent of the country's light; the six provinces of the Bangkok Metropolitan Region emit {{geo:share_bmr_2016}} percent from {{geo:area_bmr}} percent of the land, and the three EEC provinces {{geo:share_eec_2016}} percent from {{geo:area_eec}} percent. Bangkok itself appears smaller than it is ({{geo:share_bkk_2016}} percent from {{geo:area_bkk}} percent of the land) because {{geo:saturated_bkk_2016}} percent of its pixels sit at the top of the 8-bit scale: the display composite saturates in dense urban cores, a limitation that the calibrated radiance products (VNP46) reduce. This cross-sectional link between light and output is what motivates the use of lights in economics [Henderson, Storeygard and Weil, 2012]; the nowcasting models use its time-series counterpart, the monthly national radiance sum from VNP46A3, which in this draft is synthetic (Appendix A).
+
+![Share of Thailand's total night-light brightness by province (bars 2016, ticks 2012) against share of land area (circles), for the fifteen brightest provinces in 2016. Brightness is 8-bit and saturates in Bangkok, whose share is understated.](figures/fig_lights_share.png){width=88%}
+
+The composites behind Figures 4 to 6 are images scaled for display, not calibrated radiance, so the shares describe where light is rather than how much; none of these figures enters a model.
+
 # Methodology
 
 ## Transformations and the ragged edge
@@ -106,7 +126,7 @@ All numbers below are produced from synthetic data ({{synthetic_flag}}) and are 
 
 ## GDP
 
-Table 2 reports the RMSFE of every model at each origin for the hard-data-only and the all-data feature sets, with Diebold-Mariano stars against the AR benchmark at the same origin. Figure 3 shows the same information for the all-data set by origin, and Figure 4 plots the nowcasts at the pre-release origin against the actuals with the conformal band of the best model.
+Table 2 reports the RMSFE of every model at each origin for the hard-data-only and the all-data feature sets, with Diebold-Mariano stars against the AR benchmark at the same origin. Figure 7 shows the same information for the all-data set by origin, and Figure 8 plots the nowcasts at the pre-release origin against the actuals with the conformal band of the best model.
 
 {{include:tables/tab_rmsfe_gdp_yoy.md}}
 
@@ -126,7 +146,7 @@ LightGBM behaves as expected for a sample of this size: competitive during the C
 
 ## CPI
 
-Table 4 reports the monthly results. The autoregressive benchmark is strong for inflation, whose year-on-year rate is persistent, and at the end-of-month origin none of the indicator models beats it, for the mechanical reason noted in Section 3.2: at that origin the fast indicators for the month itself are not yet published and their AR(1) extrapolation adds nothing beyond what the target's own history contains. The pre-release origin, five days later, is where the fast data matter. There the elastic net with all data reaches an RMSFE of {{rmsfe:cpi_yoy:enet:all:PR}} pp against {{rmsfe:cpi_yoy:ar:none:PR}} for the benchmark, LightGBM {{rmsfe:cpi_yoy:lgbm:all:PR}} and the DFM {{rmsfe:cpi_yoy:dfm:all:PR}}; with hard data only the elastic net is at {{rmsfe:cpi_yoy:enet:hard_only:PR}}, so about half of its gain comes from the fast official series (retail fuel, farm prices) and the rest from the alternative data, mostly the online price index, which in the synthetic economy tracks the month's inflation innovation by construction. The bridge model is inadequate for a monthly target (its principal components discard the one or two series that carry the signal), which the Diebold-Mariano test flags at any conventional level; the DFM, the elastic net and LightGBM are the relevant comparison. Unlike GDP, the CPI gains are present in every regime (Table 5), because the fast price data are informative in calm months as well as in 2022. Figure 5 plots the CPI nowcasts.
+Table 4 reports the monthly results. The autoregressive benchmark is strong for inflation, whose year-on-year rate is persistent, and at the end-of-month origin none of the indicator models beats it, for the mechanical reason noted in Section 3.2: at that origin the fast indicators for the month itself are not yet published and their AR(1) extrapolation adds nothing beyond what the target's own history contains. The pre-release origin, five days later, is where the fast data matter. There the elastic net with all data reaches an RMSFE of {{rmsfe:cpi_yoy:enet:all:PR}} pp against {{rmsfe:cpi_yoy:ar:none:PR}} for the benchmark, LightGBM {{rmsfe:cpi_yoy:lgbm:all:PR}} and the DFM {{rmsfe:cpi_yoy:dfm:all:PR}}; with hard data only the elastic net is at {{rmsfe:cpi_yoy:enet:hard_only:PR}}, so about half of its gain comes from the fast official series (retail fuel, farm prices) and the rest from the alternative data, mostly the online price index, which in the synthetic economy tracks the month's inflation innovation by construction. The bridge model is inadequate for a monthly target (its principal components discard the one or two series that carry the signal), which the Diebold-Mariano test flags at any conventional level; the DFM, the elastic net and LightGBM are the relevant comparison. Unlike GDP, the CPI gains are present in every regime (Table 5), because the fast price data are informative in calm months as well as in 2022. Figure 9 plots the CPI nowcasts.
 
 {{include:tables/tab_rmsfe_cpi_yoy.md}}
 
@@ -140,7 +160,7 @@ Table: CPI inflation: RMSFE at the pre-release origin by regime, all-data featur
 
 ## The marginal value of each alternative data family
 
-Tables 6 and 7 and Figure 6 report the ablation: the RMSFE of each model with hard data plus one alternative family, relative to the same model on hard data only, at the pre-release origin.
+Tables 6 and 7 and Figure 10 report the ablation: the RMSFE of each model with hard data plus one alternative family, relative to the same model on hard data only, at the pre-release origin.
 
 {{include:tables/tab_ablation_gdp_yoy.md}}
 
@@ -178,7 +198,7 @@ Table: Nowcasts at the information date with 80% conformal bands, by model and f
 
 ![Evolution of the GDP nowcast across origins.](figures/fig_evolution_gdp_yoy.png)
 
-Figure 7 traces the GDP nowcast of the core models across the four origins, from the end of the quarter's first month to the information date, with the headline model's band. Figure 8 and Table 11 decompose the change in the all-data DFM nowcast between the end of the quarter and the information date into the contribution of each series that published a new observation in between: with the parameters fixed, the revision is the weighted sum of the surprises in those releases, and the weights are the Kalman gains the model assigns to each series. In the synthetic run the decomposition sums to the observed revision to within rounding, which is the check that matters for the implementation; the sign and size of each bar are properties of the synthetic loadings.
+Figure 11 traces the GDP nowcast of the core models across the four origins, from the end of the quarter's first month to the information date, with the headline model's band. Figure 12 and Table 11 decompose the change in the all-data DFM nowcast between the end of the quarter and the information date into the contribution of each series that published a new observation in between: with the parameters fixed, the revision is the weighted sum of the surprises in those releases, and the weights are the Kalman gains the model assigns to each series. In the synthetic run the decomposition sums to the observed revision to within rounding, which is the check that matters for the implementation; the sign and size of each bar are properties of the synthetic loadings.
 
 ![News decomposition of the GDP nowcast revision (all-data DFM).](figures/fig_news_gdp.png)
 
@@ -251,6 +271,12 @@ Henderson, J. V., Storeygard, A., and Weil, D. N. (2012). Measuring economic gro
 Ke, G., et al. (2017). LightGBM: A highly efficient gradient boosting decision tree. *Advances in Neural Information Processing Systems 30 (NIPS 2017)*.
 
 Mariano, R. S., and Murasawa, Y. (2003). A new coincident index of business cycles based on monthly and quarterly series. *Journal of Applied Econometrics*, 18(4), 427–443.
+
+NASA Earth Observatory (2017). Earth at Night: Black Marble 2012 and 2016 grayscale maps (3 km). Image records 144896 and 144897. Public domain.
+
+Román, M. O., Wang, Z., Sun, Q., Kalb, V., et al. (2018). NASA's Black Marble nighttime lights product suite. *Remote Sensing of Environment*, 210, 113–143.
+
+Runfola, D., Anderson, A., Baier, H., Crittenden, M., et al. (2020). geoBoundaries: A global database of political administrative boundaries. *PLOS ONE*, 15(4), e0231866.
 
 Stock, J. H., and Watson, M. W. (2002). Macroeconomic forecasting using diffusion indexes. *Journal of Business & Economic Statistics*, 20(2), 147–162.
 

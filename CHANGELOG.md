@@ -22,4 +22,8 @@ All notable changes to this project are documented here. The format follows
 - Paper build in arXiv layout: pandoc renders `paper/paper.tex` from `paper/template.tex`, tectonic compiles it, and
   `make arxiv` writes the self-contained source bundle `paper/arxiv.tar.gz`. References checked against
   Crossref, arXiv, NeurIPS and RePEc.
+- Paper section 3.3, "The geography of activity, seen from space": a province map of Thailand and three
+  nighttime-lights figures (the country in 2016, Bangkok and the Eastern Seaboard in 2012 and 2016, light
+  share by province) built by `make geo` from NASA Black Marble composites and geoBoundaries ADM1. These are
+  real data; the numbers in that section come from `paper/figures/geo_summary.json`.
 - Synthetic test data in `data/raw/synthetic_*.csv`, used only when a real file is missing.

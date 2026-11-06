@@ -17,6 +17,9 @@ def _fill(text: str, paper_dir: Path, processed: Path) -> str:
 
     text = re.sub(r"\{\{include:([^}]+)\}\}", include, text)
     text = _fill_numbers(text, processed)
+    geo_path = paper_dir / "figures" / "geo_summary.json"
+    geo = json.loads(geo_path.read_text(encoding="utf-8")) if geo_path.exists() else {}
+    text = re.sub(r"\{\{geo:(\w+)\}\}", lambda m: str(geo[m.group(1)]) if m.group(1) in geo else f"*[missing geo:{m.group(1)}]*", text)
     text = text.replace("{{asof}}", live.get("asof", "n/a"))
     text = text.replace("{{synthetic_flag}}", "SYNTHETIC-DATA RUN" if live.get("synthetic") else "REAL-DATA RUN")
     for tid in live.get("targets", {}):

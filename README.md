@@ -46,6 +46,7 @@ nowcast JSON, news), `paper/tables/` and `paper/figures/` (generated), `dashboar
 | `eval` | Pseudo-real-time backtest, metrics, DM tests, ablations, tables, figures |
 | `live` | Nowcast the current quarter / month as of `ASOF` |
 | `dashboard` | Static HTML dashboard → `dashboard/index.html` |
+| `geo` | Map and nighttime-lights figures for paper §3.3 (downloads NASA Black Marble + geoBoundaries, ~15 MB) |
 | `paper` | Build `paper/paper.tex` and `paper/paper.pdf` (pandoc + tectonic) |
 | `arxiv` | arXiv source bundle → `paper/arxiv.tar.gz` (prints title, abstract and comments for the form) |
 
@@ -84,6 +85,9 @@ monthly statistics already deliver, and when. Every table, figure and in-text nu
 `data/processed/`, so `make all` on the real files replaces them all.
 
 - Tables: [`paper/tables/`](paper/tables/) · Figures: [`paper/figures/`](paper/figures/)
+- Section 3.3 shows Thailand at night from the NASA Black Marble composites (real data, built by `make geo`):
+
+<p align="center"><img src="paper/figures/fig_lights_thailand.png" alt="Thailand at night, 2016" width="360"></p>
 - Pitch (3 minutes): [`pitch/pitch_outline.md`](pitch/pitch_outline.md)
 
 ## Repository layout
