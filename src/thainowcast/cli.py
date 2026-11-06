@@ -116,6 +116,7 @@ def cmd_live(args):
     asof = pd.Timestamp(args.asof)
     out = {"asof": asof.strftime("%Y-%m-%d"), "synthetic": panel.is_synthetic, "synthetic_ids": sorted(panel.synthetic_ids), "targets": {}}
     figs = PAPER_DIR / "figures"
+    evolutions = {}
     for target_id in args.targets:
         bt = pd.read_csv(PROCESSED_DIR / f"backtest_{target_id}.csv", parse_dates=["origin", "actual_release"])
         summary = pd.read_csv(PROCESSED_DIR / f"summary_{target_id}.csv")
@@ -124,6 +125,7 @@ def cmd_live(args):
             warnings.simplefilter("ignore")
             res, evo = run_live(panel, cfg, target_id, specs, asof, bt, summary)
         evo.to_csv(PROCESSED_DIR / f"live_evolution_{target_id}.csv", index=False)
+        evolutions[target_id] = evo
         out["targets"][target_id] = res
         label = "GDP y-o-y" if target_id.startswith("gdp") else "CPI y-o-y"
         core = evo[evo["feature_set"].isin(["all", "none"]) & evo["model"].isin(["ar", "dfm", "enet", "bridge"])]
@@ -151,7 +153,7 @@ def cmd_live(args):
         for m in r["models"]:
             live_rows.append({"target": tid, "period": r["period"], "model": m["model"], "feature_set": m["feature_set"], "nowcast": m["value"], "lo": m["lo"], "hi": m["hi"]})
     write(PAPER_DIR / "tables" / "tab_live.md", md_table(pd.DataFrame(live_rows)))
-    plot_dashboard_preview(out, DASHBOARD_DIR / "preview.png")
+    plot_dashboard_preview(out, evolutions, DASHBOARD_DIR / "preview.png")
     print("live nowcast ->", PROCESSED_DIR / "live_nowcast.json")
 
 

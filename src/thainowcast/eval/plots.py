@@ -144,17 +144,114 @@ def plot_news(news: pd.DataFrame, path: Path, title: str) -> Path:
     return _save(fig, path)
 
 
-def plot_dashboard_preview(live: dict, path: Path) -> Path:
-    """A one-image summary used in the README in place of a screen recording."""
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.2))
-    for ax, tid in zip(axes, ["gdp_yoy", "cpi_yoy"]):
+NIGHT = {  # the palette of the paper's night-lights figures, reused for the README preview
+    "bg": "#03060d", "panel": "#0d1424", "rule": "#1f2a44", "ink": "#e8eefc", "muted": "#9fb0d0",
+    "amber": "#f5a623", "pale": "#ffe8a3", "up": "#5ec9a0", "down": "#f07a95",
+}
+NIGHT_MODELS = {"rw": "#7d8db0", "ar": "#6f8fbf", "bridge": "#8fd0ff", "midas": "#ff9f6f", "dfm": "#c58fff", "enet": "#f5a623", "lgbm": "#5ec9a0"}
+
+
+def _night_axes(ax, title: str) -> None:
+    ax.set_facecolor(NIGHT["panel"])
+    ax.set_title(title, fontsize=8, color=NIGHT["ink"], loc="left", pad=6)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color(NIGHT["rule"])
+    ax.tick_params(colors=NIGHT["muted"], labelsize=6.5, length=2)
+    ax.grid(axis="y", color=NIGHT["rule"], lw=0.6)
+    ax.set_axisbelow(True)
+
+
+def _card(ax, t: dict, synthetic: bool) -> None:
+    from matplotlib.patches import FancyBboxPatch
+
+    ax.axis("off")
+    ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.015,rounding_size=0.03", transform=ax.transAxes,
+                                fc=NIGHT["panel"], ec=NIGHT["rule"], lw=0.8, clip_on=False))
+    h = t["headline"]
+    ax.text(0.05, 0.84, t["label"], fontsize=8.5, color=NIGHT["muted"], va="center")
+    ax.text(0.95, 0.84, t["period"], fontsize=8.5, color=NIGHT["pale"], va="center", ha="right")
+    ax.text(0.05, 0.52, f"{h['value']:.2f}%", fontsize=24, fontweight="bold", color=NIGHT["amber"], va="center")
+    ax.text(0.05, 0.27, f"80% band {h['lo']:.2f} to {h['hi']:.2f}", fontsize=7.5, color=NIGHT["ink"], va="center")
+    ax.text(0.05, 0.10, f"{h['model']} · {h['feature_set']}", fontsize=6.5, color=NIGHT["bg"], va="center",
+            bbox=dict(boxstyle="round,pad=0.35", fc=NIGHT["amber"], ec="none"))
+    ax.text(0.95, 0.10, f"official release {t['release_expected']}", fontsize=6.5, color=NIGHT["muted"], va="center", ha="right")
+    # the whole model race for this target: one dot per model/feature set, the headline in amber
+    strip = ax.inset_axes((0.52, 0.42, 0.43, 0.24))
+    strip.set_facecolor("none")
+    vals = [m["value"] for m in t["models"]]
+    strip.scatter(vals, np.zeros(len(vals)), s=14, color=NIGHT["muted"], alpha=0.7, lw=0)
+    strip.scatter([h["value"]], [0], s=34, color=NIGHT["amber"], zorder=3)
+    strip.plot([h["lo"], h["hi"]], [0, 0], color=NIGHT["amber"], lw=1.2, alpha=0.5, zorder=2)
+    strip.set_yticks([])
+    strip.set_ylim(-0.6, 1.4)
+    strip.tick_params(axis="x", colors=NIGHT["muted"], labelsize=5.5, length=2, pad=1)
+    for side in ("top", "right", "left"):
+        strip.spines[side].set_visible(False)
+    strip.spines["bottom"].set_color(NIGHT["rule"])
+    strip.text(0, 0.95, f"{len(vals)} model nowcasts", fontsize=5.5, color=NIGHT["muted"], transform=strip.transAxes, va="top")
+
+
+def plot_dashboard_preview(live: dict, evolution: dict[str, pd.DataFrame], path: Path) -> Path:
+    """A one-image summary of the live dashboard for the README: headline cards, the nowcast evolution
+    across origins and the news decomposition, in the night palette of the paper's maps."""
+    fig = plt.figure(figsize=(10, 5.6), facecolor=NIGHT["bg"])
+    gs = fig.add_gridspec(2, 6, left=0.05, right=0.975, top=0.86, bottom=0.12, hspace=0.42, wspace=0.9, height_ratios=[0.9, 1.15])
+    fig.text(0.05, 0.945, "thainowcast", fontsize=14, fontweight="bold", color=NIGHT["amber"], va="center")
+    fig.text(0.975, 0.945, f"live nowcast · information set as of {live['asof']}", fontsize=8, color=NIGHT["muted"], va="center", ha="right")
+
+    for col, tid in zip((slice(0, 3), slice(3, 6)), ("gdp_yoy", "cpi_yoy")):
+        _card(fig.add_subplot(gs[0, col]), live["targets"][tid], bool(live.get("synthetic")))
+
+    for col, tid in zip((slice(0, 2), slice(2, 4)), ("gdp_yoy", "cpi_yoy")):
         t = live["targets"][tid]
-        ax.axis("off")
-        head = t["headline"]
-        ax.text(0.02, 0.85, t["label"], fontsize=11, weight="bold")
-        ax.text(0.02, 0.62, f"{t['period']}: {head['value']:.2f}%", fontsize=20)
-        ax.text(0.02, 0.45, f"80% band {head['lo']:.2f} to {head['hi']:.2f}  |  {head['model']} ({head['feature_set']})", fontsize=8)
-        ax.text(0.02, 0.25, f"as of {live['asof']}", fontsize=8, color="#555")
-        if live.get("synthetic"):
-            ax.text(0.02, 0.05, "SYNTHETIC DATA", fontsize=9, color="#d45087", weight="bold")
-    return _save(fig, path)
+        ax = fig.add_subplot(gs[1, col])
+        _night_axes(ax, f"{t['label']} {t['period']}: nowcast by origin")
+        evo = evolution.get(tid)
+        if evo is None or evo.empty:
+            ax.text(0.5, 0.5, "no evolution", ha="center", va="center", color=NIGHT["muted"], transform=ax.transAxes)
+            continue
+        head = (t["headline"]["model"], t["headline"]["feature_set"])
+        origins = sorted(evo["origin"].unique())
+        horizon = evo.drop_duplicates("origin").set_index("origin")["horizon"]
+        shown = {("ar", "none"), ("bridge", "all"), ("dfm", "all"), ("enet", "all"), head}
+        for (model, fs), g in evo.groupby(["model", "feature_set"]):
+            if (model, fs) not in shown:
+                continue
+            g = g.sort_values("origin")
+            x = [origins.index(o) for o in g["origin"]]
+            is_head = (model, fs) == head
+            color = NIGHT_MODELS.get(model, NIGHT["muted"])
+            ax.plot(x, g["nowcast"], marker="o", ms=3.5 if is_head else 2.5, lw=2 if is_head else 1, color=color,
+                    alpha=1 if is_head else 0.75, label=f"{model} ({fs})" + (" · headline" if is_head else ""), zorder=3 if is_head else 2)
+            if is_head and g["lo"].notna().any():
+                ax.fill_between(x, g["lo"], g["hi"], color=color, alpha=0.12, lw=0)
+        ax.set_xticks(range(len(origins)))
+        ax.set_xticklabels([f"{horizon[o]}\n{o}" for o in origins])
+        ax.set_ylabel("%", color=NIGHT["muted"], fontsize=7)
+        ax.legend(fontsize=5.5, frameon=False, labelcolor=NIGHT["muted"], loc="best")
+
+    ax = fig.add_subplot(gs[1, 4:])
+    news = live.get("news")
+    if news and news.get("by_series"):
+        rows = sorted(news["by_series"], key=lambda r: abs(r["impact"]), reverse=True)[:8]
+        rows = sorted(rows, key=lambda r: r["impact"])
+        _night_axes(ax, f"GDP news: {news['nowcast_prev']:.2f} → {news['nowcast_new']:.2f} since {news['from']}")
+        ax.barh([r["series"] for r in rows], [r["impact"] for r in rows],
+                color=[NIGHT["down"] if r["impact"] < 0 else NIGHT["up"] for r in rows], height=0.65)
+        ax.axvline(0, color=NIGHT["muted"], lw=0.6)
+        ax.grid(axis="y", visible=False)
+        ax.grid(axis="x", color=NIGHT["rule"], lw=0.6)
+        ax.set_xlabel("impact on the nowcast (pp)", color=NIGHT["muted"], fontsize=6.5)
+    else:
+        _night_axes(ax, "GDP news")
+        ax.text(0.5, 0.5, "no new releases between origins", ha="center", va="center", color=NIGHT["muted"], transform=ax.transAxes, fontsize=7)
+
+    fig.text(0.05, 0.035, "Full dashboard: dashboard/index.html (static) · app/streamlit_app.py (interactive)", fontsize=6.5, color=NIGHT["muted"])
+    if live.get("synthetic"):
+        fig.text(0.975, 0.035, "SYNTHETIC DATA · nothing here describes the Thai economy", fontsize=6.5, color=NIGHT["down"], ha="right", fontweight="bold")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=160, facecolor=NIGHT["bg"])
+    plt.close(fig)
+    return path
