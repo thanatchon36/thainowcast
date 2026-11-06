@@ -48,7 +48,7 @@ Hard data are fourteen official monthly series: the manufacturing production ind
 
 {{include:tables/tab_data_audit.md}}
 
-Table: Data audit. Source and group as registered; lag is the assumed number of days between the end of the reference period and publication. Status marks whether the series loaded from a real file or from a synthetic substitute.
+Table: Data audit. Source and group as registered (group: hard official statistics or the alternative data family); lag is the assumed number of days between the end of the reference period and publication. {{audit:status}}
 
 ## Publication lags and the information set
 
@@ -130,7 +130,7 @@ Table 2 reports the RMSFE of every model at each origin for the hard-data-only a
 
 {{include:tables/tab_rmsfe_gdp_yoy.md}}
 
-Table: GDP growth (y-o-y, pp): RMSFE by model, feature set and origin, full backtest sample. Stars mark Diebold-Mariano rejections of equal squared-error loss against AR at the same origin (* 10%, ** 5%, *** 1%). Random walk and AR use no indicators.
+Table: GDP growth (y-o-y, pp): RMSFE by model, feature set and origin, full backtest sample. Columns give the feature set (hard: hard data only; all: all data) and the origin. Stars mark Diebold-Mariano rejections of equal squared-error loss against AR at the same origin (* 10%, ** 5%, *** 1%). Random walk and AR use no indicators.
 
 ![GDP: RMSFE by model and origin, all-data feature set.](figures/fig_rmsfe_gdp_yoy.png)
 
@@ -150,7 +150,7 @@ Table 4 reports the monthly results. The autoregressive benchmark is strong for 
 
 {{include:tables/tab_rmsfe_cpi_yoy.md}}
 
-Table: Headline CPI inflation (y-o-y, pp): RMSFE by model, feature set and origin, with Diebold-Mariano stars against AR at the same origin.
+Table: Headline CPI inflation (y-o-y, pp): RMSFE by model, feature set (hard: hard data only; all: all data) and origin, with Diebold-Mariano stars against AR at the same origin.
 
 {{include:tables/tab_regime_cpi_yoy.md}}
 
@@ -164,11 +164,11 @@ Tables 6 and 7 and Figure 10 report the ablation: the RMSFE of each model with h
 
 {{include:tables/tab_ablation_gdp_yoy.md}}
 
-Table: GDP growth: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model.
+Table: GDP growth: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model ({{n:ablation:gdp_yoy}} quarters).
 
 {{include:tables/tab_ablation_cpi_yoy.md}}
 
-Table: CPI inflation: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model.
+Table: CPI inflation: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model ({{n:ablation:cpi_yoy}} months).
 
 ![Relative RMSFE of each feature set versus hard data only.](figures/fig_ablation.png)
 
@@ -180,11 +180,11 @@ Tables 8 and 9 report the empirical coverage and average width of the 80% confor
 
 {{include:tables/tab_coverage_gdp_yoy.md}}
 
-Table: GDP growth: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin.
+Table: GDP growth: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin ({{n:coverage:gdp_yoy}} quarters after the calibration window).
 
 {{include:tables/tab_coverage_cpi_yoy.md}}
 
-Table: CPI inflation: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin.
+Table: CPI inflation: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin ({{n:coverage:cpi_yoy}} months after the calibration window).
 
 Coverage for the GDP models lies between {{covmin:gdp_yoy}} and {{covmax:gdp_yoy}} at the pre-release origin and for the CPI models between {{covmin:cpi_yoy}} and {{covmax:cpi_yoy}}, with the undercoverage concentrated in 2020 as expected. The intervals of the indicator models are narrower than the benchmark's where the models are more accurate, which is the property one wants from a calibrated band: the width reflects the model's own past errors, not a fixed multiple of a residual variance.
 
@@ -194,7 +194,7 @@ At the information date, {{asof}}, the first unpublished GDP quarter is {{live:g
 
 {{include:tables/tab_live.md}}
 
-Table: Nowcasts at the information date with 80% conformal bands, by model and feature set.
+Table: Nowcasts (%) at the information date, with 80% conformal bands, by model and feature set. The headline nowcast of each target is in bold; a blank cell means the model is not run on that feature set for that target.
 
 ![Evolution of the GDP nowcast across origins.](figures/fig_evolution_gdp_yoy.png)
 
@@ -204,7 +204,7 @@ Figure 11 traces the GDP nowcast of the core models across the four origins, fro
 
 {{include:tables/tab_news_gdp.md}}
 
-Table: News decomposition: contribution of each series' new releases to the revision of the all-data DFM nowcast, pp.
+Table: News decomposition of the all-data DFM nowcast revision. Releases: new observations of the series between the two origins; surprise: the released value minus the model's previous forecast of it, summed over those releases, in the series' own transformed units (Table 1); impact: the resulting change in the nowcast, in percentage points.
 
 # Robustness
 

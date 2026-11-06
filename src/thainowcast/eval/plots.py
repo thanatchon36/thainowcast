@@ -1,6 +1,7 @@
 """Figures. Every figure is produced from the backtest/live tables, never from hand-typed numbers."""
 from __future__ import annotations
 
+from itertools import pairwise
 from pathlib import Path
 
 import matplotlib
@@ -11,6 +12,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from ..config import Config  # noqa: E402
+from .report import short_name  # noqa: E402
 
 GROUP_COLORS = {
     "hard": "#2f4b7c", "alt_trends": "#d45087", "alt_lights": "#ff7c43", "alt_no2": "#665191",
@@ -38,14 +40,6 @@ GROUP_LABELS = {
 }
 
 
-def _calendar_label(name: str, width: int = 44) -> str:
-    """Indicator name for the calendar axis: drop the '(TH)' tag and, if still too long, a trailing parenthetical."""
-    name = name.replace(" (TH)", "")
-    if len(name) > width and name.endswith(")") and " (" in name:
-        name = name[: name.rindex(" (")]
-    return name
-
-
 def plot_release_calendar(cfg: Config, path: Path) -> Path:
     order = list(GROUP_LABELS)
     specs = sorted(cfg.indicators.values(),
@@ -56,10 +50,10 @@ def plot_release_calendar(cfg: Config, path: Path) -> Path:
     ax.barh(y, lags, height=0.7, color=[GROUP_COLORS.get(s.group, "#333") for s in specs], zorder=2)
     for yi, lag in zip(y, lags):
         ax.text(lag + 0.5, yi, f"{lag}", va="center", fontsize=7, color="#333", zorder=4,
-                bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
-    ax.set_yticks(y, [_calendar_label(s.name_en) for s in specs], fontsize=7.5)
+                bbox={"boxstyle": "square,pad=0.15", "fc": "white", "ec": "none"})
+    ax.set_yticks(y, [short_name(s.name_en) for s in specs], fontsize=7.5)
     # thin rules between groups
-    for yi in np.flatnonzero([a.group != b.group for a, b in zip(specs, specs[1:])]):
+    for yi in np.flatnonzero([a.group != b.group for a, b in pairwise(specs)]):
         ax.axhline(yi + 0.5, color="#bbbbbb", lw=0.6, zorder=1)
 
     # target releases: one line per distinct lag, labelled in the empty band above the first bar

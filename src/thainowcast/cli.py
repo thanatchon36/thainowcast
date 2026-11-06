@@ -52,7 +52,15 @@ def cmd_eval(args):
     from .eval.backtest import backtest_periods, final_horizon, horizons_for, model_specs_for, run_backtest
     from .eval.metrics import ablation_table, add_intervals, coverage_table, dm_table, summarize
     from .eval.plots import plot_ablation, plot_nowcast_vs_actual, plot_release_calendar, plot_rmsfe_by_horizon, plot_targets
-    from .eval.report import data_audit_table, md_table, regime_table, rmsfe_table, write
+    from .eval.report import (
+        ablation_paper_table,
+        coverage_paper_table,
+        data_audit_table,
+        md_table,
+        regime_table,
+        rmsfe_table,
+        write,
+    )
 
     cfg = load_config()
     panel = _panel(cfg)
@@ -85,11 +93,8 @@ def cmd_eval(args):
         horizons = horizons_for(target_id, cfg)
         write(tables / f"tab_rmsfe_{target_id}.md", md_table(rmsfe_table(summary, dm, ["hard_only", "all"], horizons)))
         write(tables / f"tab_regime_{target_id}.md", md_table(regime_table(summary, hf, "all")))
-        abl_out = abl.copy()
-        abl_out["feature_set"] = abl_out["feature_set"].map(lambda s: {"hard_only": "hard only"}.get(s, s.replace("hard_", "hard + ")))
-        write(tables / f"tab_ablation_{target_id}.md", md_table(abl_out))
-        cov_out = cov[cov["feature_set"].isin(["all", "hard_only", "none"]) & (cov["horizon"] == hf)]
-        write(tables / f"tab_coverage_{target_id}.md", md_table(cov_out))
+        write(tables / f"tab_ablation_{target_id}.md", md_table(ablation_paper_table(abl)))
+        write(tables / f"tab_coverage_{target_id}.md", md_table(coverage_paper_table(cov, hf)))
         best = summary[(summary["regime"] == "full") & (summary["horizon"] == hf) & (summary["model"] != "rw")].sort_values("rmsfe").iloc[0]
         sel = [(best["model"], best["feature_set"], f"{best['model']} ({best['feature_set']})")]
         for m, fs in [("dfm", "all"), ("enet", "all"), ("ar", "none")]:
@@ -109,7 +114,7 @@ def cmd_live(args):
     from .eval.backtest import model_specs_for
     from .eval.live import dfm_news, next_unreleased, run_live
     from .eval.plots import plot_dashboard_preview, plot_evolution, plot_news
-    from .eval.report import md_table, write
+    from .eval.report import live_table, md_table, news_table, write
 
     cfg = load_config()
     panel = _panel(cfg)
@@ -144,15 +149,10 @@ def cmd_live(args):
                 out["news"] = {"target": target_id, "feature_set": "all", "from": o_prev.strftime("%Y-%m-%d"), "to": o_new.strftime("%Y-%m-%d"), **{k: (float(v) if isinstance(v, (int, float)) else v) for k, v in meta.items()},
                                "by_series": [{"series": s, "impact": float(v)} for s, v in news.groupby("series")["impact"].sum().sort_values().items()]}
                 plot_news(news, figs / "fig_news_gdp.png", f"GDP {target}: news from releases between {o_prev.date()} and {o_new.date()}" + (" [SYNTHETIC]" if panel.is_synthetic else ""))
-                top = news.groupby("series").agg(impact=("impact", "sum"), news=("news", "sum")).sort_values("impact")
-                write(PAPER_DIR / "tables" / "tab_news_gdp.md", md_table(top.reset_index(), floatfmt="{:.3f}"))
+                write(PAPER_DIR / "tables" / "tab_news_gdp.md", md_table(news_table(news, cfg)))
                 print(f"   news: {meta['nowcast_prev']:.2f} -> {meta['nowcast_new']:.2f} ({meta['method']})")
     (PROCESSED_DIR / "live_nowcast.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
-    live_rows = []
-    for tid, r in out["targets"].items():
-        for m in r["models"]:
-            live_rows.append({"target": tid, "period": r["period"], "model": m["model"], "feature_set": m["feature_set"], "nowcast": m["value"], "lo": m["lo"], "hi": m["hi"]})
-    write(PAPER_DIR / "tables" / "tab_live.md", md_table(pd.DataFrame(live_rows)))
+    write(PAPER_DIR / "tables" / "tab_live.md", md_table(live_table(out)))
     plot_dashboard_preview(out, evolutions, DASHBOARD_DIR / "preview.png")
     print("live nowcast ->", PROCESSED_DIR / "live_nowcast.json")
 

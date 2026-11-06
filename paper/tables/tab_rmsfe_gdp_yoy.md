@@ -1,5 +1,5 @@
-| model | M1 | M2 | M3 | PR | hard only M1 | hard only M2 | hard only M3 | hard only PR | all M1 | all M2 | all M3 | all PR |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| model | M1 | M2 | M3 | PR | hard M1 | hard M2 | hard M3 | hard PR | all M1 | all M2 | all M3 | all PR |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | Random walk | 3.45 | 2.64 | 2.64 | 2.64 |  |  |  |  |  |  |  |  |
 | AR(p) | 2.97 | 2.54 | 2.54 | 2.54 |  |  |  |  |  |  |  |  |
 | Bridge (PCA) |  |  |  |  | 2.27* | 1.66 | 1.35 | 1.38 | 2.45* | 1.87 | 1.66 | 1.66 |

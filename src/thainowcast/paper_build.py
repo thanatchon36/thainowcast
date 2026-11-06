@@ -33,26 +33,69 @@ def _fill(text: str, paper_dir: Path, processed: Path) -> str:
     return text
 
 
+TEXT_WIDTH_PT = 453.5  # A4 with 2.5 cm margins (template.tex)
+TABLE_CHAR_PT = 3.5    # width of one ems() unit in \footnotesize Libertinus, measured on the built PDF
+TABLE_COLSEP_PT = 6.0  # 2 x \tabcolsep (3pt) per column
+
+
 def _size_columns(table: str) -> str:
-    """Rewrite a pipe table's |---| separator so pandoc's relative column widths follow the content
-    (dash count = longest body cell, capped, but never below the longest unbreakable word),
-    instead of splitting the page evenly."""
+    """Rewrite a pipe table's |---| separator so pandoc's column widths follow the content.
+
+    pandoc sets a table at its natural width when every source line is short (72 characters), and
+    otherwise spreads it over the full text width with relative widths taken from the dash counts.
+    For a wide table each column starts at its natural width (longest cell); if the total exceeds
+    the page, the widest columns are narrowed first, never below their longest unbreakable word,
+    so long text wraps while numbers and identifiers stay on one line. Alignment colons are kept."""
     lines = table.splitlines()
     if len(lines) < 3 or not re.fullmatch(r"\|(\s*:?-+:?\s*\|)+", lines[1].strip()):
         return table
+    seps = [c.strip() for c in lines[1].strip().strip("|").split("|")]
     rows = [[c.strip() for c in ln.strip().strip("|").split("|")] for ln in lines]
 
-    def ems(s: str) -> int:  # capitals, digits and underscores are wider than the average lowercase letter
-        return round(sum(1.3 if ch.isupper() or ch.isdigit() or ch == "_" else 1.0 for ch in s))
+    def dashes(n: int, sep: str) -> str:
+        return (":" if sep.startswith(":") else "") + "-" * n + (":" if sep.endswith(":") else "")
 
-    widths = []
-    for j in range(len(rows[0])):
+    if all(len(ln) <= 72 for i, ln in enumerate(lines) if i != 1):
+        lines[1] = "|" + "|".join(dashes(3, s) for s in seps) + "|"
+        return "\n".join(lines)
+
+    def ems(s: str) -> float:  # capitals, digits and underscores are wider than the average lowercase letter
+        s = s.replace("**", "")
+        return sum(1.3 if ch.isupper() or ch.isdigit() or ch == "_" else 1.0 for ch in s)
+
+    n = len(seps)
+    word, width = [], []
+    for j in range(n):
         cells = [r[j] for r in rows[:1] + rows[2:] if j < len(r)]
-        word = max((ems(w) for c in cells for w in c.split()), default=1)
-        body = max((ems(c) for c in cells[1:]), default=1)
-        widths.append(max(word, min(16, body)) + 1)
-    lines[1] = "|" + "|".join("-" * w for w in widths) + "|"
+        word.append(max((ems(w) for c in cells for w in c.split()), default=1.0) + 2)
+        width.append(max([word[j]] + [ems(c) + 1 for c in cells[1:]]))
+    budget = (TEXT_WIDTH_PT - TABLE_COLSEP_PT * n) / TABLE_CHAR_PT
+    while sum(width) > budget:
+        shrinkable = [j for j in range(n) if width[j] > word[j]]
+        if not shrinkable:
+            break
+        j = max(shrinkable, key=lambda k: width[k])
+        width[j] = max(word[j], width[j] - 1)
+    lines[1] = "|" + "|".join(dashes(max(3, round(w)), s) for w, s in zip(width, seps)) + "|"
     return "\n".join(lines)
+
+
+def _keep_short_tables_together(tex: str, short: int = 15, edge: int = 3) -> str:
+    """longtable may break a page between any two body rows, which can strand one row on the next page.
+    Ending a row with \\\\* forbids a break after it: a short table (up to `short` rows) is kept whole,
+    and a longer one may break only with at least `edge` rows on each side of the break."""
+    def fix(m: re.Match) -> str:
+        table = m.group(0)
+        head, sep, body = table.partition("\\endlastfoot")
+        if not sep:
+            return table
+        ends = [e.start() for e in re.finditer(r"\\\\(?=\s*\n)", body)]
+        keep = set(ends) if len(ends) <= short else set(ends[:edge] + ends[-edge - 1:])
+        for pos in sorted(keep, reverse=True):
+            body = body[: pos + 2] + "*" + body[pos + 2:]
+        return head + sep + body
+
+    return re.sub(r"\\begin\{longtable\}.*?\\end\{longtable\}", fix, tex, flags=re.DOTALL)
 
 
 def _fill_numbers(text: str, processed: Path) -> str:
@@ -118,6 +161,32 @@ def _fill_numbers(text: str, processed: Path) -> str:
         v = c[(c.horizon == "PR") & (c.feature_set.isin(["hard_only", "all"]))]["coverage"]
         return f2(v.min() if which == "covmin" else v.max()) if len(v) else "n/a"
 
+    def nobs(m: re.Match) -> str:
+        """Number of evaluation periods behind a table, from its CSV's n column ('37 to 38' if it varies)."""
+        kind, tid = m.groups()
+        t = load(kind, tid)
+        if t is None or "n" not in t:
+            return "n/a"
+        if kind == "coverage":
+            t = t[t.horizon == "PR"]
+        lo, hi = int(t["n"].min()), int(t["n"].max())
+        return str(lo) if lo == hi else f"{lo} to {hi}"
+
+    def audit(m: re.Match) -> str:
+        meta = processed / "panel.meta.json"
+        if not meta.exists():
+            return "n/a"
+        from .config import load_config
+
+        n_syn, n_all = len(json.loads(meta.read_text(encoding="utf-8")).get("synthetic_ids", [])), len(load_config().specs)
+        if n_syn == n_all:
+            return f"All {n_all} series in this run are synthetic substitutes; no real file was found."
+        if n_syn == 0:
+            return f"All {n_all} series in this run were loaded from real files."
+        return f"{n_syn} of the {n_all} series in this run are synthetic substitutes (status column)."
+
+    text = re.sub(r"\{\{n:(\w+):(\w+)\}\}", nobs, text)
+    text = re.sub(r"\{\{audit:status\}\}", audit, text)
     text = re.sub(r"\{\{rmsfe:(\w+):(\w+):(\w+):(\w+)\}\}", rmsfe, text)
     text = re.sub(r"\{\{regime:(\w+):(\w+):(\w+):(\w+):(\w+)\}\}", regime, text)
     text = re.sub(r"\{\{abl:(\w+):(\w+):(\w+)\}\}", abl, text)
@@ -140,5 +209,7 @@ def build_paper(paper_dir: Path, processed: Path) -> Path:
         ["pandoc", build_md.name, "-o", "paper.tex", "--template", "template.tex", "--number-sections"],
         check=True, cwd=str(paper_dir),
     )
+    tex = paper_dir / "paper.tex"
+    tex.write_text(_keep_short_tables_together(tex.read_text(encoding="utf-8")), encoding="utf-8")
     subprocess.run(["tectonic", "-X", "compile", "--keep-logs", "paper.tex"], check=True, cwd=str(paper_dir))
     return paper_dir / "paper.pdf"

@@ -1,5 +1,5 @@
-| model | M0 | PR | hard only M0 | hard only PR | all M0 | all PR |
-|---|---|---|---|---|---|---|
+| model | M0 | PR | hard M0 | hard PR | all M0 | all PR |
+|---|--:|--:|--:|--:|--:|--:|
 | Random walk | 0.82 | 0.82 |  |  |  |  |
 | AR(p) | 0.81 | 0.81 |  |  |  |  |
 | Bridge (PCA) |  |  | 1.27*** | 1.17*** | 1.22*** | 1.04** |

@@ -1,12 +1,12 @@
-| feature_set | model | horizon | coverage | width | n |
-|---|---|---|---|---|---|
-| all | bridge | PR | 0.84 | 2.79 | 133 |
-| all | dfm | PR | 0.79 | 1.52 | 133 |
-| all | enet | PR | 0.92 | 1.34 | 133 |
-| all | lgbm | PR | 0.80 | 1.12 | 133 |
-| hard_only | bridge | PR | 0.71 | 2.47 | 133 |
-| hard_only | dfm | PR | 0.74 | 1.40 | 133 |
-| hard_only | enet | PR | 0.79 | 1.42 | 133 |
-| hard_only | lgbm | PR | 0.75 | 1.38 | 133 |
-| none | ar | PR | 0.77 | 1.50 | 133 |
-| none | rw | PR | 0.77 | 1.60 | 133 |
+| model | feature set | coverage | width (pp) |
+|---|---|--:|--:|
+| Random walk | – | 0.77 | 1.60 |
+| AR(p) | – | 0.77 | 1.50 |
+| Bridge (PCA) | hard only | 0.71 | 2.47 |
+|  | all | 0.84 | 2.79 |
+| DFM (mixed-freq.) | hard only | 0.74 | 1.40 |
+|  | all | 0.79 | 1.52 |
+| Elastic net | hard only | 0.79 | 1.42 |
+|  | all | 0.92 | 1.34 |
+| LightGBM | hard only | 0.75 | 1.38 |
+|  | all | 0.80 | 1.12 |

@@ -1,5 +1,5 @@
-| model | full | pre_covid | covid | post_covid |
-|---|---|---|---|---|
+| model | full sample | pre-COVID | COVID | post-COVID |
+|---|--:|--:|--:|--:|
 | Random walk | 0.82 | 0.60 | 1.02 | 0.92 |
 | AR(p) | 0.81 | 0.60 | 1.03 | 0.88 |
 | Bridge (PCA) | 1.04 | 1.20 | 0.68 | 0.98 |
