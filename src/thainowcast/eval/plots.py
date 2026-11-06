@@ -32,23 +32,65 @@ def _ptime(periods: pd.Series) -> np.ndarray:
     return np.array([pd.Period(p).to_timestamp(how="end") for p in periods])
 
 
+GROUP_LABELS = {
+    "hard": "Official statistics", "alt_prices": "Online prices", "alt_trends": "Google Trends",
+    "alt_no2": "NO2 (Sentinel-5P)", "alt_mobility": "Mobility", "alt_lights": "Nighttime lights",
+}
+
+
+def _calendar_label(name: str, width: int = 44) -> str:
+    """Indicator name for the calendar axis: drop the '(TH)' tag and, if still too long, a trailing parenthetical."""
+    name = name.replace(" (TH)", "")
+    if len(name) > width and name.endswith(")") and " (" in name:
+        name = name[: name.rindex(" (")]
+    return name
+
+
 def plot_release_calendar(cfg: Config, path: Path) -> Path:
-    specs = sorted(cfg.indicators.values(), key=lambda s: (s.group, s.release_lag_days))
-    fig, ax = plt.subplots(figsize=(8, 6.5))
-    names = [f"{s.name_en[:38]}" for s in specs]
+    order = list(GROUP_LABELS)
+    specs = sorted(cfg.indicators.values(),
+                   key=lambda s: (order.index(s.group) if s.group in order else len(order), s.release_lag_days, s.name_en))
     lags = [s.release_lag_days for s in specs]
-    colors = [GROUP_COLORS.get(s.group, "#333") for s in specs]
-    ax.barh(names, lags, color=colors)
+    y = np.arange(len(specs))
+    fig, ax = plt.subplots(figsize=(8, 7))
+    ax.barh(y, lags, height=0.7, color=[GROUP_COLORS.get(s.group, "#333") for s in specs], zorder=2)
+    for yi, lag in zip(y, lags):
+        ax.text(lag + 0.5, yi, f"{lag}", va="center", fontsize=7, color="#333", zorder=4,
+                bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
+    ax.set_yticks(y, [_calendar_label(s.name_en) for s in specs], fontsize=7.5)
+    # thin rules between groups
+    for yi in np.flatnonzero([a.group != b.group for a, b in zip(specs, specs[1:])]):
+        ax.axhline(yi + 0.5, color="#bbbbbb", lw=0.6, zorder=1)
+
+    # target releases: one line per distinct lag, labelled in the empty band above the first bar
+    xmax = max(lags + [t.release_lag_days for t in cfg.targets.values()]) + 4
+    by_lag: dict[int, list[str]] = {}
     for t in cfg.targets.values():
-        ax.axvline(t.release_lag_days, ls="--", lw=1, color=GROUP_COLORS["target"])
-        ax.text(t.release_lag_days + 0.5, 0.2, f"{t.id} release", rotation=90, fontsize=7, va="bottom")
-    ax.set_xlabel("days after the end of the reference period until publication")
-    ax.set_title("Release calendar used by the pseudo-real-time engine")
-    ax.invert_yaxis()
-    ax.tick_params(axis="y", labelsize=7)
-    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for g, c in GROUP_COLORS.items() if g != "target"]
-    ax.legend(handles, [g for g in GROUP_COLORS if g != "target"], fontsize=7, loc="lower right")
-    return _save(fig, path)
+        short = t.id.split("_")[0].upper()
+        if short not in by_lag.setdefault(t.release_lag_days, []):
+            by_lag[t.release_lag_days].append(short)
+    for lag, shorts in by_lag.items():
+        ax.axvline(lag, ls="--", lw=1, color=GROUP_COLORS["target"], zorder=3)
+        right = lag > xmax / 2
+        ax.text(lag + (-0.6 if right else 0.6), -1.25, f"{' / '.join(shorts)} release: day {lag}",
+                ha="right" if right else "left", va="center", fontsize=7.5, fontweight="bold")
+
+    ax.set_xlim(0, xmax)
+    ax.set_ylim(len(specs) - 0.5, -2.0)
+    ax.set_xlabel("days after the end of the reference period until publication", fontsize=9)
+    ax.tick_params(axis="x", labelsize=8)
+    ax.grid(axis="x", color="#e5e5e5", lw=0.6, zorder=0)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    groups = [g for g in order if any(s.group == g for s in specs)]
+    handles = [plt.Rectangle((0, 0), 1, 1, color=GROUP_COLORS[g]) for g in groups]
+    fig.legend(handles, [GROUP_LABELS[g] for g in groups], fontsize=7.5, ncol=3, frameon=False,
+               loc="lower center", bbox_to_anchor=(0.5, 0.0))
+    fig.tight_layout(rect=(0.01, 0.045, 1, 1))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+    return path
 
 
 def plot_targets(panel, cfg: Config, path: Path) -> Path:
