@@ -1,0 +1,14 @@
+data/raw/*.csv
+!data/raw/synthetic_*.csv
+data/processed/
+.venv/
+__pycache__/
+*.pyc
+paper/paper_build.md
+paper/*.aux
+.pytest_cache/
+paper/paper.tex
+paper/paper.log
+paper/arxiv/
+paper/arxiv.tar.gz
+*:Zone.Identifier

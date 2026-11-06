@@ -1,0 +1,319 @@
+# ThaiNowcast — indicator registry and release calendar
+# ---------------------------------------------------------------------------
+# start             : first period of the LEVEL series (a YoY feature needs 12 more months)
+# end               : last period, only for discontinued series
+# release_lag_days  : typical calendar days between the end of the reference period and
+#                     publication. Approximations taken from each agency's usual release
+#                     timing — verify against the official calendars before a real run [ต้องตรวจ].
+# transform         : yoy | log_yoy | yoy_diff | level
+# file              : CSV expected in data/raw/ with columns `period,value`.
+#                     `synthetic_<file>` is used ONLY when the real file is missing, with a warning.
+# fetch             : where the real file comes from (see docs/data_sources.md)
+
+targets:
+  gdp_yoy:
+    name_th: "GDP จริง YoY (%)"
+    name_en: "Real GDP growth, y-o-y (%)"
+    agency: "NESDC (สภาพัฒน์)"
+    frequency: Q
+    start: "2005Q1"
+    release_lag_days: 48
+    transform: level
+    fetch: "manual: nesdc.go.th > QGDP press release > Excel table, YoY % of GDP at chained volume"
+    file: gdp_yoy.csv
+  gdp_qoq_sa:
+    name_th: "GDP จริง QoQ SA (%)"
+    name_en: "Real GDP growth, q-o-q seasonally adjusted (%)"
+    agency: "NESDC (สภาพัฒน์)"
+    frequency: Q
+    start: "2005Q1"
+    release_lag_days: 48
+    transform: level
+    fetch: "manual: same NESDC release as gdp_yoy, seasonally adjusted table"
+    file: gdp_qoq_sa.csv
+  cpi_yoy:
+    name_th: "เงินเฟ้อทั่วไป YoY (%)"
+    name_en: "Headline CPI inflation, y-o-y (%)"
+    agency: "TPSO กระทรวงพาณิชย์"
+    frequency: M
+    start: "2005-01"
+    release_lag_days: 6
+    transform: level
+    fetch: "manual: tpso.go.th / price.moc.go.th > CPI monthly report > headline YoY"
+    file: cpi_yoy.csv
+
+indicators:
+  # ---------------- hard data: official monthly statistics ----------------
+  mpi:
+    name_th: "ดัชนีผลผลิตอุตสาหกรรม"
+    name_en: "Manufacturing Production Index"
+    agency: "OIE (สศอ.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "manual: oie.go.th > สถิติอุตสาหกรรม > MPI xlsx (or BOT API EC_EI_027) [ต้องตรวจ]"
+    file: mpi.csv
+  pci:
+    name_th: "ดัชนีการบริโภคภาคเอกชน (PCI)"
+    name_en: "Private Consumption Index"
+    agency: "BOT (ธปท.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "api: BOT API portal (apiportal.bot.or.th), Economic & Financial statistics, PCI [ต้องตรวจ series code]"
+    file: pci.csv
+  pii:
+    name_th: "ดัชนีการลงทุนภาคเอกชน (PII)"
+    name_en: "Private Investment Index"
+    agency: "BOT (ธปท.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "api: BOT API portal, PII [ต้องตรวจ series code]"
+    file: pii.csv
+  credit:
+    name_th: "สินเชื่อระบบธนาคารพาณิชย์"
+    name_en: "Commercial bank loans outstanding"
+    agency: "BOT (ธปท.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "api: BOT API portal, loans outstanding by sector"
+    file: credit.csv
+  promptpay:
+    name_th: "มูลค่าธุรกรรมพร้อมเพย์"
+    name_en: "PromptPay transaction value"
+    agency: "BOT (ธปท.)"
+    group: hard
+    frequency: M
+    start: "2016-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "manual: BOT payment systems statistics (bot.or.th > Payment Systems > Statistics)"
+    file: promptpay.csv
+  exports:
+    name_th: "มูลค่าส่งออก (USD)"
+    name_en: "Merchandise exports (USD)"
+    agency: "Customs Department (กรมศุลกากร)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 25
+    transform: yoy
+    fetch: "manual: customs.go.th > สถิติการค้า; also MOC press release"
+    file: exports.csv
+  imports:
+    name_th: "มูลค่านำเข้า (USD)"
+    name_en: "Merchandise imports (USD)"
+    agency: "Customs Department (กรมศุลกากร)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 25
+    transform: yoy
+    fetch: "manual: customs.go.th > สถิติการค้า"
+    file: imports.csv
+  tourists:
+    name_th: "นักท่องเที่ยวต่างชาติ (คน)"
+    name_en: "International tourist arrivals"
+    agency: "MOTS (กระทรวงการท่องเที่ยวฯ)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 20
+    transform: log_yoy
+    fetch: "manual: mots.go.th > สถิตินักท่องเที่ยว > monthly arrivals"
+    file: tourists.csv
+  aot_pax:
+    name_th: "ผู้โดยสารสนามบิน AOT"
+    name_en: "AOT airport passengers"
+    agency: "AOT (ทอท.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 20
+    transform: log_yoy
+    fetch: "manual: airportthai.co.th > Air Traffic Statistics"
+    file: aot_pax.csv
+  electricity:
+    name_th: "ปริมาณการใช้ไฟฟ้า"
+    name_en: "Electricity consumption"
+    agency: "EPPO (สนพ.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 45
+    transform: yoy
+    fetch: "manual: eppo.go.th > สถิติพลังงาน > electricity consumption by sector"
+    file: electricity.csv
+  vehicle_reg:
+    name_th: "ยอดจดทะเบียนรถใหม่"
+    name_en: "New vehicle registrations"
+    agency: "DLT (กรมการขนส่งทางบก)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 15
+    transform: yoy
+    fetch: "manual: web.dlt.go.th/statistics > จดทะเบียนใหม่"
+    file: vehicle_reg.csv
+  expressway:
+    name_th: "ปริมาณจราจรทางพิเศษ"
+    name_en: "Expressway traffic volume"
+    agency: "EXAT (กทพ.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 30
+    transform: yoy
+    fetch: "manual: exat.co.th > สถิติปริมาณจราจร"
+    file: expressway.csv
+  oil_retail:
+    name_th: "ราคาขายปลีกดีเซล"
+    name_en: "Retail diesel price (monthly average)"
+    agency: "EPPO (สนพ.) / PTT"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 1
+    transform: yoy
+    fetch: "scrape: eppo.go.th petroleum price statistics (daily, average to month)"
+    file: oil_retail.csv
+  agri_price:
+    name_th: "ดัชนีราคาสินค้าเกษตร"
+    name_en: "Farm price index"
+    agency: "OAE (สศก.)"
+    group: hard
+    frequency: M
+    start: "2004-01"
+    release_lag_days: 15
+    transform: yoy
+    fetch: "manual: oae.go.th > ดัชนีราคาสินค้าเกษตร"
+    file: agri_price.csv
+
+  # ---------------- alternative data ----------------
+  gt_unemploy:
+    name_th: "Google Trends: ว่างงาน / หางาน"
+    name_en: "Google Trends: unemployment / job search (TH)"
+    agency: "Google Trends"
+    group: alt_trends
+    frequency: M
+    start: "2008-01"
+    release_lag_days: 3
+    transform: yoy_diff
+    fetch: "api: pytrends, geo=TH, topic 'ว่างงาน','หางาน'; weekly -> monthly mean"
+    file: gt_unemploy.csv
+  gt_loan:
+    name_th: "Google Trends: ขอสินเชื่อ / กู้เงิน"
+    name_en: "Google Trends: loan / borrowing (TH)"
+    agency: "Google Trends"
+    group: alt_trends
+    frequency: M
+    start: "2008-01"
+    release_lag_days: 3
+    transform: yoy_diff
+    fetch: "api: pytrends, geo=TH, 'กู้เงิน','สินเชื่อ'"
+    file: gt_loan.csv
+  gt_car_installment:
+    name_th: "Google Trends: ผ่อนรถ"
+    name_en: "Google Trends: car installment (TH)"
+    agency: "Google Trends"
+    group: alt_trends
+    frequency: M
+    start: "2008-01"
+    release_lag_days: 3
+    transform: yoy_diff
+    fetch: "api: pytrends, geo=TH, 'ผ่อนรถ'"
+    file: gt_car_installment.csv
+  gt_travel:
+    name_th: "Google Trends: ท่องเที่ยว / จองโรงแรม"
+    name_en: "Google Trends: travel / hotel booking (TH)"
+    agency: "Google Trends"
+    group: alt_trends
+    frequency: M
+    start: "2008-01"
+    release_lag_days: 3
+    transform: yoy_diff
+    fetch: "api: pytrends, geo=TH, 'ที่พัก','จองโรงแรม'"
+    file: gt_travel.csv
+  gt_prices:
+    name_th: "Google Trends: ของแพง / ราคาน้ำมัน"
+    name_en: "Google Trends: prices / fuel price (TH)"
+    agency: "Google Trends"
+    group: alt_trends
+    frequency: M
+    start: "2008-01"
+    release_lag_days: 3
+    transform: yoy_diff
+    fetch: "api: pytrends, geo=TH, 'ของแพง','ราคาน้ำมันวันนี้'"
+    file: gt_prices.csv
+  nightlights:
+    name_th: "แสงไฟกลางคืน (VIIRS Black Marble)"
+    name_en: "Nighttime lights radiance, national sum (VNP46A3)"
+    agency: "NASA Black Marble"
+    group: alt_lights
+    frequency: M
+    start: "2012-04"
+    release_lag_days: 40
+    transform: log_yoy
+    fetch: "api: NASA Earthdata (ladsweb) VNP46A3 monthly tiles -> provincial zonal sum with GADM boundaries"
+    file: nightlights.csv
+  no2:
+    name_th: "NO2 โทรโพสเฟียร์ (Sentinel-5P)"
+    name_en: "Tropospheric NO2 column, industrial provinces (Sentinel-5P)"
+    agency: "ESA Copernicus"
+    group: alt_no2
+    frequency: M
+    start: "2018-07"
+    release_lag_days: 5
+    transform: log_yoy
+    fetch: "api: Google Earth Engine COPERNICUS/S5P/OFFL/L3_NO2, monthly mean over EEC + Samut Prakan"
+    file: no2.csv
+  online_prices:
+    name_th: "ดัชนีราคาสินค้าออนไลน์"
+    name_en: "Online price index (scraped daily, Billion-Prices style)"
+    agency: "own scraper"
+    group: alt_prices
+    frequency: M
+    start: "2015-01"
+    release_lag_days: 1
+    transform: yoy
+    fetch: "scrape: own daily scraper of major online grocers (check ToS) [ต้องตรวจ]"
+    file: online_prices.csv
+  mobility:
+    name_th: "Google Mobility: retail & recreation"
+    name_en: "Google Community Mobility: retail & recreation (% vs baseline)"
+    agency: "Google (discontinued 2022-10)"
+    group: alt_mobility
+    frequency: M
+    start: "2020-02"
+    end: "2022-10"
+    release_lag_days: 2
+    transform: level
+    fetch: "manual: google.com/covid19/mobility archived CSV, TH national"
+    file: mobility.csv
+
+feature_sets:
+  hard_only: [hard]
+  hard_trends: [hard, alt_trends]
+  hard_lights: [hard, alt_lights]
+  hard_no2: [hard, alt_no2]
+  hard_prices: [hard, alt_prices]
+  all: [hard, alt_trends, alt_lights, alt_no2, alt_prices, alt_mobility]
+
+backtest:
+  start: "2015-01"
+  benchmark: ar
+  conformal_alpha: 0.2
+  regimes:
+    pre_covid: ["2015-01", "2019-12"]
+    covid: ["2020-01", "2021-12"]
+    post_covid: ["2022-01", "2035-12"]

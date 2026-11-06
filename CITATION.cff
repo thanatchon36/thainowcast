@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "Please cite the paper (preferred-citation); if you use the thainowcast pipeline, also cite the software."
+title: "thainowcast: pseudo-real-time nowcasting of Thai GDP and inflation with official and alternative data"
+abstract: >-
+  Open pseudo-real-time nowcasting pipeline for Thai quarterly GDP growth and
+  monthly headline CPI inflation: a release-calendar information set, a
+  mixed-frequency model race (bridge, MIDAS, dynamic factor model, elastic net,
+  LightGBM), regime-split evaluation with Diebold-Mariano tests, conformal
+  intervals, alternative-data ablations and a Kalman-filter news decomposition.
+type: software
+authors:
+  - family-names: Chongmankhong
+    given-names: Thanatchon
+version: 0.1.0
+date-released: 2026-11-05
+license: MIT
+repository-code: "https://github.com/thanatchon36/thainowcast"
+keywords: [nowcasting, thailand, gdp, inflation, alternative-data, dynamic-factor-model, midas]
+preferred-citation:
+  type: generic
+  title: "ThaiNowcast: Pseudo-Real-Time Nowcasting of Thai GDP and Inflation with Official and Alternative Data"
+  authors:
+    - family-names: Chongmankhong
+      given-names: Thanatchon
+  year: 2026
+  notes: "Working paper draft; results are from synthetic test data."

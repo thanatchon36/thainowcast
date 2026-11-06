@@ -1,0 +1,12 @@
+{
+  "title": "thainowcast",
+  "upload_type": "software",
+  "description": "Open pseudo-real-time nowcasting pipeline for Thai quarterly GDP growth and monthly headline CPI inflation from official monthly statistics and alternative data (Google Trends, nighttime lights, Sentinel-5P NO2, online prices, mobility): a release-calendar information set, a mixed-frequency model race (bridge, MIDAS, dynamic factor model, elastic net, LightGBM), regime-split evaluation with Diebold-Mariano tests, conformal intervals, alternative-data ablations and a Kalman-filter news decomposition. Companion software to the working paper \"ThaiNowcast: Pseudo-Real-Time Nowcasting of Thai GDP and Inflation with Official and Alternative Data\".",
+  "creators": [
+    {
+      "name": "Chongmankhong, Thanatchon"
+    }
+  ],
+  "license": "mit",
+  "keywords": ["nowcasting", "Thailand", "GDP", "inflation", "alternative data", "dynamic factor model", "MIDAS"]
+}

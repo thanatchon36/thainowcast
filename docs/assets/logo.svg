@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="t">
+  <title id="t">thainowcast</title>
+  <rect width="128" height="128" rx="28" fill="#12233f"/>
+  <!-- axes -->
+  <path d="M22 26 V102 H106" fill="none" stroke="#3b5578" stroke-width="3" stroke-linecap="round"/>
+  <!-- nowcast fan: the uncertainty band past the information-set date -->
+  <path d="M74 60 L104 38 L104 82 Z" fill="#7fb0ec" opacity="0.35"/>
+  <!-- published history up to the information-set date -->
+  <path d="M26 84 C34 76 40 80 46 70 C52 60 58 74 64 64 C68 58 71 62 74 60" fill="none" stroke="#7fb0ec" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- today: the as-of line -->
+  <path d="M74 28 V98" stroke="#ffd166" stroke-width="3" stroke-dasharray="5 4" stroke-linecap="round"/>
+  <!-- the nowcast point -->
+  <path d="M74 60 L98 58" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/>
+  <circle cx="98" cy="58" r="7" fill="#1f5fae" stroke="#ffffff" stroke-width="3"/>
+</svg>

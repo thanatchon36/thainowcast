@@ -1,0 +1,24 @@
+| series | impact | news |
+|---|---|---|
+| gt_travel | -0.109 | -29.320 |
+| gt_unemploy | -0.040 | 28.192 |
+| vehicle_reg | -0.037 | -8.288 |
+| gt_loan | -0.016 | 12.079 |
+| imports | -0.015 | -5.816 |
+| expressway | -0.010 | -2.034 |
+| electricity | -0.008 | -0.710 |
+| aot_pax | -0.003 | 1.755 |
+| gt_car_installment | -0.002 | 0.915 |
+| tourists | -0.002 | 8.345 |
+| gt_prices | -0.001 | -1.200 |
+| agri_price | -0.000 | -0.091 |
+| no2 | 0.000 | -0.412 |
+| oil_retail | 0.000 | -4.401 |
+| promptpay | 0.000 | 0.655 |
+| pii | 0.001 | 0.168 |
+| online_prices | 0.002 | 1.317 |
+| mpi | 0.002 | 0.162 |
+| credit | 0.003 | 0.228 |
+| exports | 0.010 | 1.903 |
+| nightlights | 0.015 | 2.380 |
+| pci | 0.030 | 1.668 |

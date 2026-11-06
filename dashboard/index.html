@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ThaiNowcast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f3f4f6; --panel:#ffffff; --ink:#1b2130; --muted:#5b6474; --rule:#d9dde5;
+  --hard:#2f4b7c; --alt:#d45087; --up:#1f7a5a; --down:#b4304f; --band:rgba(47,75,124,.14);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme: dark;
+  --bg:#13161c; --panel:#1b1f27; --ink:#e8eaef; --muted:#9aa3b2; --rule:#2c323d; --band:rgba(133,163,214,.18); --hard:#8fb0e6; --alt:#ec7fb0; --up:#5ec9a0; --down:#f07a95; } }
+:root[data-theme="dark"]{ color-scheme: dark;
+  --bg:#13161c; --panel:#1b1f27; --ink:#e8eaef; --muted:#9aa3b2; --rule:#2c323d; --band:rgba(133,163,214,.18); --hard:#8fb0e6; --alt:#ec7fb0; --up:#5ec9a0; --down:#f07a95; }
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height:1.45; font-size:15px}
+main{max-width:1040px; margin:0 auto; padding:24px 18px 48px}
+h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-.01em}
+h2{font-size:1.05rem; font-weight:600; margin:28px 0 10px}
+p{margin:.3em 0; max-width:70ch}
+.muted{color:var(--muted)}
+.banner{background:var(--down); color:#fff; padding:10px 14px; border-radius:6px; margin:14px 0 18px; font-weight:500}
+.hero{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-top:16px}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:16px 18px}
+.card .big{font-size:2.6rem; font-weight:600; line-height:1.1; font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace}
+.card .band{font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; color:var(--muted); font-size:.9rem}
+.card .what{font-size:.9rem; color:var(--muted); margin-top:6px}
+.chart{position:relative; height:300px}
+.wide{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:.86rem; min-width:520px}
+th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--rule); white-space:nowrap}
+th{color:var(--muted); font-weight:500}
+td.num{font-family:"IBM Plex Mono", ui-monospace, monospace; text-align:right}
+th.num{text-align:right}
+.pill{display:inline-block; padding:1px 7px; border-radius:10px; font-size:.75rem; border:1px solid var(--rule); color:var(--muted)}
+.pill.hard{border-color:var(--hard); color:var(--hard)}
+.pill.alt{border-color:var(--alt); color:var(--alt)}
+.grid2{display:grid; grid-template-columns:1fr; gap:14px}
+@media (min-width:820px){ .grid2{grid-template-columns:1fr 1fr} }
+footer{margin-top:36px; color:var(--muted); font-size:.82rem}
+a{color:var(--hard)}
+:focus-visible{outline:2px solid var(--alt); outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>ThaiNowcast</h1>
+<p class="muted">Pseudo-real-time estimates of the current quarter’s GDP growth and the current month’s inflation, before the official release. Information set as of <span id="asof"></span>.</p>
+<div id="banner" class="banner" hidden>Synthetic data. The pipeline ran on generated test series, so these numbers describe the code, not the Thai economy. Replace data/raw with real files to get real nowcasts.</div>
+
+<section class="hero" id="hero"></section>
+
+<h2>How the estimate moved as data arrived</h2>
+<p class="muted">Each point is a nowcast made at that date with only the data published by then. The shaded band is the 80% conformal interval of the headline model.</p>
+<div class="grid2">
+  <div class="card"><div class="chart"><canvas id="evo_gdp"></canvas></div></div>
+  <div class="card"><div class="chart"><canvas id="evo_cpi"></canvas></div></div>
+</div>
+
+<h2>What changed the GDP number since the last origin</h2>
+<p class="muted" id="newsText"></p>
+<div class="card"><div class="chart" style="height:360px"><canvas id="news"></canvas></div></div>
+
+<h2>Backtest accuracy at the final origin</h2>
+<p class="muted">Root mean squared nowcast error over the pseudo-real-time backtest (2015 onward), and the ratio to the AR benchmark. Lower is better.</p>
+<div class="grid2">
+  <div class="card wide"><table id="bt_gdp"></table></div>
+  <div class="card wide"><table id="bt_cpi"></table></div>
+</div>
+
+<h2>Data flow</h2>
+<p class="muted">Latest reference period known for each series at the information date, and the publication lag the engine assumes.</p>
+<div class="card wide"><table id="avail"></table></div>
+
+<footer>Built by the ThaiNowcast pipeline (<code>make all</code>). Models: AR, factor bridge, MIDAS, mixed-frequency DFM, elastic net, LightGBM. Intervals are conformal from past nowcast errors.</footer>
+</main>
+<script id="data" type="application/json">{"asof": "2026-11-05", "synthetic": true, "targets": {"gdp_yoy": {"label": "Real GDP growth (y-o-y)", "period": "2026Q3", "release_expected": "2026-11-17", "headline": {"model": "enet", "feature_set": "hard_only", "value": 2.622081984570472, "lo": 1.2321626043496732, "hi": 4.012001364791271, "rmsfe_full": 1.1729679933805253}, "models": [{"model": "rw", "feature_set": "none", "value": 4.035735, "lo": 2.1696509999999996, "hi": 5.901819}, {"model": "ar", "feature_set": "none", "value": 3.7247021640278297, "lo": 1.6627235019632787, "hi": 5.786680826092381}, {"model": "bridge", "feature_set": "hard_only", "value": 2.744188700020815, "lo": 1.1611176888087378, "hi": 4.327259711232892}, {"model": "bridge", "feature_set": "hard_trends", "value": 2.674056418037423, "lo": 1.2520382531462815, "hi": 4.096074582928565}, {"model": "bridge", "feature_set": "hard_lights", "value": 2.771415556231245, "lo": 1.43295525583927, "hi": 4.109875856623219}, {"model": "bridge", "feature_set": "hard_no2", "value": 2.496059678850094, "lo": 0.912988667638017, "hi": 4.079130690062171}, {"model": "bridge", "feature_set": "hard_prices", "value": 2.62062591496925, "lo": 1.1868895915257238, "hi": 4.054362238412777}, {"model": "bridge", "feature_set": "all", "value": 2.4001047258769646, "lo": 1.0819277773060407, "hi": 3.7182816744478884}, {"model": "enet", "feature_set": "hard_only", "value": 2.622081984570472, "lo": 1.2321626043496732, "hi": 4.012001364791271}, {"model": "enet", "feature_set": "hard_trends", "value": 2.5062786974179816, "lo": 1.1956021229098588, "hi": 3.8169552719261044}, {"model": "enet", "feature_set": "hard_lights", "value": 2.622081984570472, "lo": 1.2958890611390879, "hi": 3.948274908001856}, {"model": "enet", "feature_set": "hard_no2", "value": 2.0694009258166295, "lo": 0.6794815455958307, "hi": 3.4593203060374282}, {"model": "enet", "feature_set": "hard_prices", "value": 2.6069274801172466, "lo": 1.265976164598964, "hi": 3.9478787956355292}, {"model": "enet", "feature_set": "all", "value": 2.06940092581663, "lo": 0.7471238227565626, "hi": 3.3916780288766972}, {"model": "midas", "feature_set": "hard_only", "value": 3.4239859732768743, "lo": 1.3072362627081366, "hi": 5.540735683845612}, {"model": "midas", "feature_set": "all", "value": 3.2150876254650664, "lo": 1.1521296518849318, "hi": 5.2780455990452015}, {"model": "lgbm", "feature_set": "hard_only", "value": 2.9411170887132343, "lo": 1.3701709870669854, "hi": 4.512063190359483}, {"model": "lgbm", "feature_set": "all", "value": 3.101451725661528, "lo": 1.5555462561563083, "hi": 4.647357195166748}, {"model": "dfm", "feature_set": "hard_only", "value": 3.6750213539314704, "lo": 2.013620414584559, "hi": 5.336422293278382}, {"model": "dfm", "feature_set": "all", "value": 3.390650768988231, "lo": 1.781317465636148, "hi": 4.999984072340314}], "origins": [{"horizon": "M1", "origin": "2026-07-31"}, {"horizon": "M2", "origin": "2026-08-31"}, {"horizon": "M3", "origin": "2026-09-30"}, {"horizon": "latest", "origin": "2026-11-05"}], "evolution": [{"label": "ar (none)", "model": "ar", "points": [{"x": "2026-07-31", "y": 3.756, "lo": 1.211, "hi": 6.302}, {"x": "2026-08-31", "y": 3.725, "lo": 1.663, "hi": 5.787}, {"x": "2026-09-30", "y": 3.725, "lo": 1.663, "hi": 5.787}, {"x": "2026-11-05", "y": 3.725, "lo": 1.663, "hi": 5.787}]}, {"label": "bridge (all)", "model": "bridge", "points": [{"x": "2026-07-31", "y": 2.323, "lo": 0.312, "hi": 4.335}, {"x": "2026-08-31", "y": 2.338, "lo": 0.642, "hi": 4.034}, {"x": "2026-09-30", "y": 2.397, "lo": 1.13, "hi": 3.664}, {"x": "2026-11-05", "y": 2.4, "lo": 1.082, "hi": 3.718}]}, {"label": "dfm (all)", "model": "dfm", "points": [{"x": "2026-07-31", "y": 3.952, "lo": 1.741, "hi": 6.163}, {"x": "2026-08-31", "y": 3.578, "lo": 1.827, "hi": 5.329}, {"x": "2026-09-30", "y": 3.567, "lo": 1.912, "hi": 5.223}, {"x": "2026-11-05", "y": 3.391, "lo": 1.781, "hi": 5.0}]}, {"label": "enet (all)", "model": "enet", "points": [{"x": "2026-07-31", "y": 2.514, "lo": 0.662, "hi": 4.367}, {"x": "2026-08-31", "y": 2.489, "lo": 0.878, "hi": 4.101}, {"x": "2026-09-30", "y": 2.253, "lo": 0.921, "hi": 3.585}, {"x": "2026-11-05", "y": 2.069, "lo": 0.747, "hi": 3.392}]}], "backtest": [{"model": "enet", "feature_set": "hard_only", "rmsfe": 1.173, "rel": 0.463}, {"model": "bridge", "feature_set": "hard_only", "rmsfe": 1.383, "rel": 0.546}, {"model": "dfm", "feature_set": "hard_only", "rmsfe": 1.62, "rel": 0.639}, {"model": "midas", "feature_set": "hard_only", "rmsfe": 1.621, "rel": 0.639}, {"model": "bridge", "feature_set": "all", "rmsfe": 1.661, "rel": 0.655}, {"model": "midas", "feature_set": "all", "rmsfe": 1.661, "rel": 0.655}, {"model": "lgbm", "feature_set": "all", "rmsfe": 1.819, "rel": 0.717}, {"model": "lgbm", "feature_set": "hard_only", "rmsfe": 1.839, "rel": 0.726}, {"model": "enet", "feature_set": "all", "rmsfe": 1.977, "rel": 0.78}, {"model": "dfm", "feature_set": "all", "rmsfe": 2.244, "rel": 0.885}, {"model": "ar", "feature_set": "none", "rmsfe": 2.535, "rel": 1.0}, {"model": "rw", "feature_set": "none", "rmsfe": 2.641, "rel": 1.042}], "horizon": "PR"}, "cpi_yoy": {"label": "Headline CPI inflation (y-o-y)", "period": "2026-10", "release_expected": "2026-11-06", "headline": {"model": "enet", "feature_set": "all", "value": 2.3061274905583997, "lo": 1.7569674731498859, "hi": 2.8552875079669136, "rmsfe_full": 0.4361894121007024}, "models": [{"model": "rw", "feature_set": "none", "value": 1.986116, "lo": 1.2255880000000001, "hi": 2.746644}, {"model": "ar", "feature_set": "none", "value": 2.00337733475106, "lo": 1.268319552720219, "hi": 2.7384351167819014}, {"model": "bridge", "feature_set": "hard_only", "value": 2.0678123266897193, "lo": 0.6540992818840159, "hi": 3.4815253714954224}, {"model": "bridge", "feature_set": "hard_trends", "value": 1.9620034720025499, "lo": 0.4891452396813707, "hi": 3.434861704323729}, {"model": "bridge", "feature_set": "hard_lights", "value": 2.0765670156961114, "lo": 0.37655284097829655, "hi": 3.776581190413926}, {"model": "bridge", "feature_set": "hard_no2", "value": 1.9200449635415748, "lo": 0.6043047433915709, "hi": 3.2357851836915787}, {"model": "bridge", "feature_set": "hard_prices", "value": 2.2296769839880586, "lo": 1.1140155832432992, "hi": 3.345338384732818}, {"model": "bridge", "feature_set": "all", "value": 1.975565967816605, "lo": 0.6607716191167214, "hi": 3.2903603165164887}, {"model": "enet", "feature_set": "hard_only", "value": 1.4688316407918371, "lo": 0.7576763015292372, "hi": 2.179986980054437}, {"model": "enet", "feature_set": "hard_trends", "value": 1.5680678603109373, "lo": 0.8654972705394863, "hi": 2.270638450082388}, {"model": "enet", "feature_set": "hard_lights", "value": 1.453471697024606, "lo": 0.7403797703699131, "hi": 2.166563623679299}, {"model": "enet", "feature_set": "hard_no2", "value": 1.4918525949020902, "lo": 0.7879344711507577, "hi": 2.1957707186534225}, {"model": "enet", "feature_set": "hard_prices", "value": 2.3240561431880207, "lo": 1.7618486314697233, "hi": 2.886263654906318}, {"model": "enet", "feature_set": "all", "value": 2.3061274905583997, "lo": 1.7569674731498859, "hi": 2.8552875079669136}, {"model": "lgbm", "feature_set": "hard_only", "value": 1.7115373151574091, "lo": 0.9853831938492812, "hi": 2.437691436465537}, {"model": "lgbm", "feature_set": "hard_trends", "value": 1.8052224662652232, "lo": 1.0741084133932657, "hi": 2.5363365191371807}, {"model": "lgbm", "feature_set": "hard_lights", "value": 1.7343294825051507, "lo": 0.9627479740720566, "hi": 2.505910990938245}, {"model": "lgbm", "feature_set": "hard_no2", "value": 1.601669895932529, "lo": 0.8755157746244011, "hi": 2.327824017240657}, {"model": "lgbm", "feature_set": "hard_prices", "value": 2.6627841727515746, "lo": 2.042484129772815, "hi": 3.283084215730334}, {"model": "lgbm", "feature_set": "all", "value": 2.4313120467587654, "lo": 1.8900278903158707, "hi": 2.97259620320166}, {"model": "dfm", "feature_set": "hard_only", "value": 1.9848952359169132, "lo": 1.2595816683075094, "hi": 2.710208803526317}, {"model": "dfm", "feature_set": "all", "value": 1.9386500191541647, "lo": 1.1784398057771612, "hi": 2.6988602325311684}], "origins": [{"horizon": "mid", "origin": "2026-10-15"}, {"horizon": "M0", "origin": "2026-10-31"}, {"horizon": "PR", "origin": "2026-11-05"}], "evolution": [{"label": "ar (none)", "model": "ar", "points": [{"x": "2026-10-15", "y": 2.003, "lo": 1.268, "hi": 2.738}, {"x": "2026-10-31", "y": 2.003, "lo": 1.268, "hi": 2.738}, {"x": "2026-11-05", "y": 2.003, "lo": 1.268, "hi": 2.738}]}, {"label": "bridge (all)", "model": "bridge", "points": [{"x": "2026-10-15", "y": 1.509, "lo": 0.194, "hi": 2.824}, {"x": "2026-10-31", "y": 1.508, "lo": -0.038, "hi": 3.055}, {"x": "2026-11-05", "y": 1.976, "lo": 0.661, "hi": 3.29}]}, {"label": "dfm (all)", "model": "dfm", "points": [{"x": "2026-10-15", "y": 1.975, "lo": 1.214, "hi": 2.735}, {"x": "2026-10-31", "y": 1.985, "lo": 1.232, "hi": 2.738}, {"x": "2026-11-05", "y": 1.939, "lo": 1.178, "hi": 2.699}]}, {"label": "enet (all)", "model": "enet", "points": [{"x": "2026-10-15", "y": 1.984, "lo": 1.435, "hi": 2.533}, {"x": "2026-10-31", "y": 1.987, "lo": 1.093, "hi": 2.88}, {"x": "2026-11-05", "y": 2.306, "lo": 1.757, "hi": 2.855}]}], "backtest": [{"model": "enet", "feature_set": "all", "rmsfe": 0.436, "rel": 0.541}, {"model": "lgbm", "feature_set": "all", "rmsfe": 0.484, "rel": 0.6}, {"model": "enet", "feature_set": "hard_only", "rmsfe": 0.551, "rel": 0.683}, {"model": "lgbm", "feature_set": "hard_only", "rmsfe": 0.58, "rel": 0.719}, {"model": "dfm", "feature_set": "all", "rmsfe": 0.739, "rel": 0.916}, {"model": "dfm", "feature_set": "hard_only", "rmsfe": 0.744, "rel": 0.923}, {"model": "ar", "feature_set": "none", "rmsfe": 0.807, "rel": 1.0}, {"model": "rw", "feature_set": "none", "rmsfe": 0.822, "rel": 1.019}, {"model": "bridge", "feature_set": "all", "rmsfe": 1.041, "rel": 1.291}, {"model": "bridge", "feature_set": "hard_only", "rmsfe": 1.172, "rel": 1.453}], "horizon": "PR"}}, "news": {"target": "gdp_yoy", "feature_set": "all", "from": "2026-09-30", "to": "2026-11-05", "nowcast_prev": 3.5685982984504783, "nowcast_new": 3.3940234709497727, "change": -0.17457482750070552, "method": "statsmodels news", "by_series": [{"series": "gt_travel", "impact": -0.1086785742316695}, {"series": "gt_unemploy", "impact": -0.04016759006269474}, {"series": "vehicle_reg", "impact": -0.036649334000346166}, {"series": "gt_loan", "impact": -0.01628605938699763}, {"series": "imports", "impact": -0.015136326294564404}, {"series": "expressway", "impact": -0.009875545780666455}, {"series": "electricity", "impact": -0.0078903737892733}, {"series": "aot_pax", "impact": -0.0030941998220819413}, {"series": "gt_car_installment", "impact": -0.0018230290502531492}, {"series": "tourists", "impact": -0.00153754350423599}, {"series": "gt_prices", "impact": -0.000554228192775243}, {"series": "agri_price", "impact": -0.00011514053254522077}, {"series": "no2", "impact": 8.707749035095566e-05}, {"series": "oil_retail", "impact": 0.0003556778514359496}, {"series": "promptpay", "impact": 0.00046628805263241923}, {"series": "pii", "impact": 0.0012703540228690478}, {"series": "online_prices", "impact": 0.0017428370827895715}, {"series": "mpi", "impact": 0.001969272432995771}, {"series": "credit", "impact": 0.002661494191363973}, {"series": "exports", "impact": 0.010002031045984879}, {"series": "nightlights", "impact": 0.014907920357179036}, {"series": "pci", "impact": 0.0300623035927379}]}, "backtest": [], "availability": [{"series": "gdp_yoy", "name": "Real GDP growth, y-o-y (%)", "group": "target", "lag": 48, "last": "2026Q2", "released": "2026-08-17", "synthetic": true}, {"series": "gdp_qoq_sa", "name": "Real GDP growth, q-o-q seasonally adjusted (%)", "group": "target", "lag": 48, "last": "2026Q2", "released": "2026-08-17", "synthetic": true}, {"series": "cpi_yoy", "name": "Headline CPI inflation, y-o-y (%)", "group": "target", "lag": 6, "last": "2026-09", "released": "2026-10-06", "synthetic": true}, {"series": "mpi", "name": "Manufacturing Production Index", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "pci", "name": "Private Consumption Index", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "pii", "name": "Private Investment Index", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "credit", "name": "Commercial bank loans outstanding", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "promptpay", "name": "PromptPay transaction value", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "exports", "name": "Merchandise exports (USD)", "group": "hard", "lag": 25, "last": "2026-09", "released": "2026-10-25", "synthetic": true}, {"series": "imports", "name": "Merchandise imports (USD)", "group": "hard", "lag": 25, "last": "2026-09", "released": "2026-10-25", "synthetic": true}, {"series": "tourists", "name": "International tourist arrivals", "group": "hard", "lag": 20, "last": "2026-09", "released": "2026-10-20", "synthetic": true}, {"series": "aot_pax", "name": "AOT airport passengers", "group": "hard", "lag": 20, "last": "2026-09", "released": "2026-10-20", "synthetic": true}, {"series": "electricity", "name": "Electricity consumption", "group": "hard", "lag": 45, "last": "2026-08", "released": "2026-10-15", "synthetic": true}, {"series": "vehicle_reg", "name": "New vehicle registrations", "group": "hard", "lag": 15, "last": "2026-09", "released": "2026-10-15", "synthetic": true}, {"series": "expressway", "name": "Expressway traffic volume", "group": "hard", "lag": 30, "last": "2026-09", "released": "2026-10-30", "synthetic": true}, {"series": "oil_retail", "name": "Retail diesel price (monthly average)", "group": "hard", "lag": 1, "last": "2026-10", "released": "2026-11-01", "synthetic": true}, {"series": "agri_price", "name": "Farm price index", "group": "hard", "lag": 15, "last": "2026-09", "released": "2026-10-15", "synthetic": true}, {"series": "gt_unemploy", "name": "Google Trends: unemployment / job search (TH)", "group": "alt_trends", "lag": 3, "last": "2026-10", "released": "2026-11-03", "synthetic": true}, {"series": "gt_loan", "name": "Google Trends: loan / borrowing (TH)", "group": "alt_trends", "lag": 3, "last": "2026-10", "released": "2026-11-03", "synthetic": true}, {"series": "gt_car_installment", "name": "Google Trends: car installment (TH)", "group": "alt_trends", "lag": 3, "last": "2026-10", "released": "2026-11-03", "synthetic": true}, {"series": "gt_travel", "name": "Google Trends: travel / hotel booking (TH)", "group": "alt_trends", "lag": 3, "last": "2026-10", "released": "2026-11-03", "synthetic": true}, {"series": "gt_prices", "name": "Google Trends: prices / fuel price (TH)", "group": "alt_trends", "lag": 3, "last": "2026-10", "released": "2026-11-03", "synthetic": true}, {"series": "nightlights", "name": "Nighttime lights radiance, national sum (VNP46A3)", "group": "alt_lights", "lag": 40, "last": "2026-08", "released": "2026-10-10", "synthetic": true}, {"series": "no2", "name": "Tropospheric NO2 column, industrial provinces (Sentinel-5P)", "group": "alt_no2", "lag": 5, "last": "2026-10", "released": "2026-11-05", "synthetic": true}, {"series": "online_prices", "name": "Online price index (scraped daily, Billion-Prices style)", "group": "alt_prices", "lag": 1, "last": "2026-10", "released": "2026-11-01", "synthetic": true}, {"series": "mobility", "name": "Google Community Mobility: retail & recreation (% vs baseline)", "group": "alt_mobility", "lag": 2, "last": "2022-10", "released": "2022-11-02", "synthetic": true}]}</script>
+<script>
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+document.getElementById("asof").textContent = DATA.asof;
+if (DATA.synthetic) document.getElementById("banner").hidden = false;
+const fmt = (v) => (v === null || v === undefined || Number.isNaN(v)) ? "–" : (Math.round(v * 100) / 100).toFixed(2);
+
+// hero cards
+const hero = document.getElementById("hero");
+for (const [tid, t] of Object.entries(DATA.targets)) {
+  const h = t.headline;
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<div class="muted">${t.label}, ${t.period}</div>
+    <div class="big">${fmt(h.value)}%</div>
+    <div class="band">80% band ${fmt(h.lo)} to ${fmt(h.hi)}</div>
+    <div class="what">Headline model: ${h.model} on ${h.feature_set} features (best backtest RMSFE ${fmt(h.rmsfe_full)} pp). Official release expected ${t.release_expected || "n/a"}.</div>`;
+  hero.appendChild(card);
+}
+
+// evolution charts
+const colors = { ar: "#777777", dfm: css("--alt"), enet: "#e07b39", bridge: css("--hard") };
+function evoChart(id, t) {
+  const datasets = [];
+  for (const s of t.evolution) {
+    const col = colors[s.model] || css("--hard");
+    datasets.push({ label: s.label, data: s.points.map(p => ({x: p.x, y: p.y})), borderColor: col, backgroundColor: col, tension: .15, pointRadius: 4, borderWidth: s.model === t.headline.model ? 2.5 : 1.3 });
+    if (s.model === t.headline.model && s.label.includes(t.headline.feature_set)) {
+      datasets.push({ label: "80% band (upper)", data: s.points.map(p => ({x: p.x, y: p.hi})), borderWidth: 0, pointRadius: 0, fill: "+1", backgroundColor: css("--band") });
+      datasets.push({ label: "80% band (lower)", data: s.points.map(p => ({x: p.x, y: p.lo})), borderWidth: 0, pointRadius: 0 });
+    }
+  }
+  new Chart(document.getElementById(id), { type: "line", data: { datasets },
+    options: { maintainAspectRatio: false, scales: { x: { type: "category", labels: t.evolution[0].points.map(p => p.x), ticks: { color: css("--muted") }, grid: { color: css("--rule") } }, y: { ticks: { color: css("--muted") }, grid: { color: css("--rule") }, title: { display: true, text: t.label + " (%)", color: css("--muted") } } },
+      plugins: { legend: { labels: { color: css("--ink"), filter: (i) => !i.text.startsWith("80% band") } }, title: { display: true, text: t.label + " " + t.period, color: css("--ink") } } } });
+}
+evoChart("evo_gdp", DATA.targets.gdp_yoy);
+evoChart("evo_cpi", DATA.targets.cpi_yoy);
+
+// news
+if (DATA.news && DATA.news.by_series) {
+  const n = DATA.news;
+  document.getElementById("newsText").textContent = `DFM (all features): ${fmt(n.nowcast_prev)}% at ${n.from} to ${fmt(n.nowcast_new)}% at ${n.to}. Bars show the impact of each series’ new releases, using the model’s Kalman-filter weights (${n.method}).`;
+  const rows = n.by_series.filter(r => Math.abs(r.impact) > 0.0005);
+  new Chart(document.getElementById("news"), { type: "bar", data: { labels: rows.map(r => r.series), datasets: [{ data: rows.map(r => r.impact), backgroundColor: rows.map(r => r.impact < 0 ? css("--down") : css("--up")) }] },
+    options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: css("--muted") }, grid: { color: css("--rule") }, title: { display: true, text: "impact on the nowcast (pp)", color: css("--muted") } }, y: { ticks: { color: css("--muted") }, grid: { display: false } } } } });
+}
+
+// backtest tables
+function btTable(id, t) {
+  const el = document.getElementById(id);
+  let html = `<tr><th>${t.label} at origin ${t.horizon}</th><th>features</th><th class="num">RMSFE</th><th class="num">vs AR</th></tr>`;
+  for (const r of t.backtest) html += `<tr><td>${r.model}</td><td>${r.feature_set}</td><td class="num">${fmt(r.rmsfe)}</td><td class="num">${fmt(r.rel)}</td></tr>`;
+  el.innerHTML = html;
+}
+btTable("bt_gdp", DATA.targets.gdp_yoy);
+btTable("bt_cpi", DATA.targets.cpi_yoy);
+
+// availability
+let av = `<tr><th>series</th><th>group</th><th class="num">lag (days)</th><th>latest period</th><th>published</th></tr>`;
+for (const r of DATA.availability) {
+  const cls = r.group === "hard" ? "hard" : (r.group === "target" ? "" : "alt");
+  av += `<tr><td>${r.name}${r.synthetic ? ' <span class="pill">synthetic</span>' : ""}</td><td><span class="pill ${cls}">${r.group}</span></td><td class="num">${r.lag}</td><td>${r.last}</td><td>${r.released}</td></tr>`;
+}
+document.getElementById("avail").innerHTML = av;
+</script>
+</body>
+</html>
