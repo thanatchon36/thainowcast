@@ -13,6 +13,7 @@ authors:
     given-names: Thanatchon
 version: 0.1.0
 date-released: 2026-11-06
+doi: 10.5281/zenodo.23995547
 license: MIT
 repository-code: "https://github.com/thanatchon36/thainowcast"
 keywords: [nowcasting, thailand, gdp, inflation, alternative-data, dynamic-factor-model, midas]
