@@ -25,5 +25,6 @@ All notable changes to this project are documented here. The format follows
 - Paper section 3.3, "The geography of activity, seen from space": a province map of Thailand and three
   nighttime-lights figures (the country in 2016, Bangkok and the Eastern Seaboard in 2012 and 2016, light
   share by province) built by `make geo` from NASA Black Marble composites and geoBoundaries ADM1. These are
-  real data; the numbers in that section come from `paper/figures/geo_summary.json`.
+  real data; the numbers in that section come from `paper/figures/geo_summary.json`. The same image is the
+  README banner (`docs/assets/banner.png`).
 - Synthetic test data in `data/raw/synthetic_*.csv`, used only when a real file is missing.

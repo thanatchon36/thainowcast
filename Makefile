@@ -25,7 +25,7 @@ dashboard:      ## static HTML dashboard -> dashboard/index.html
 app:            ## interactive Streamlit app
 	$(PY) -m streamlit run app/streamlit_app.py
 
-geo:            ## map and nighttime-lights figures for the paper (downloads ~15 MB into data/raw/geo/)
+geo:            ## map and nighttime-lights figures for the paper + README banner (downloads ~15 MB into data/raw/geo/)
 	$(PY) scripts/make_geo_figures.py
 
 paper:          ## build paper/paper.tex and paper/paper.pdf (pandoc + tectonic)

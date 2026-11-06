@@ -64,7 +64,7 @@ At an origin $t$, the information set $\Omega_t$ contains every observation whos
 
 Figure 3 places the registry on the map. Most official indicators are national aggregates, but two inputs are defined over areas: the NO2 series averages the tropospheric column over the three provinces of the Eastern Economic Corridor (EEC) and Samut Prakan, where Thailand's heavy industry and its main deep-sea port are concentrated, and the nighttime-lights series sums radiance over all {{geo:n_provinces}} provinces.
 
-![Thailand's provinces, with Bangkok, the Bangkok Metropolitan Region and the area over which the NO2 series is averaged. Boundaries: geoBoundaries ADM1 [Runfola et al., 2020], © OpenStreetMap contributors.](figures/fig_map_thailand.png){width=62%}
+![Thailand's provinces, with Bangkok, the Bangkok Metropolitan Region and the area over which the NO2 series is averaged. Boundaries: geoBoundaries ADM1 [Runfola et al., 2020], © OpenStreetMap contributors.](figures/fig_map_thailand.png){height=88%}
 
 Nighttime lights are the most intuitive of the alternative data families, and Figure 4 shows why. It is the 2016 Black Marble composite built by NASA from the VIIRS day/night band on the Suomi NPP satellite [Román et al., 2018], and unlike the synthetic panel of the empirical sections it is real data. The image is a map of where economic activity takes place: the Bangkok Metropolitan Region and the Eastern Seaboard form one continuous glow, the regional centres of Chiang Mai, Udon Thani, Khon Kaen, Nakhon Ratchasima, Hat Yai and Phuket stand out as bright points, the main highways appear as strings of lit towns, and {{geo:dark_land_2016}} percent of the country's land is essentially dark (brightness below 10 on the image's 0 to 255 scale).
 

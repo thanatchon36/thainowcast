@@ -3,8 +3,9 @@
 Real data, unlike the synthetic panel: NASA Earth Observatory's Black Marble 2012 and 2016 global
 grayscale composites (3 km, public domain) and geoBoundaries ADM1 province boundaries
 (OpenStreetMap contributors, ODbL). Downloads go to data/raw/geo/ (not committed); outputs are
-paper/figures/fig_map_thailand.png, fig_lights_thailand.png, fig_lights_share.png and
-paper/figures/geo_summary.json, whose numbers fill the {{geo:...}} placeholders in paper.md.
+paper/figures/fig_map_thailand.png, fig_lights_thailand.png, fig_lights_bkk_eec.png, fig_lights_share.png,
+paper/figures/geo_summary.json, whose numbers fill the {{geo:...}} placeholders in paper.md, and the
+README banner docs/assets/banner.png.
 
 The composites are 8-bit images scaled for display, not calibrated radiance: brightness sums are
 used here only to describe where light is, never as a model input.
@@ -201,9 +202,10 @@ def main() -> None:
     credit = "NASA Earth Observatory Black Marble (3 km grayscale composite) · boundaries © OpenStreetMap contributors"
 
     # Figure: Thailand at night, 2016 (the full country)
+    rgb_2016 = night_rgb(lights[2016][0], thai)
     fig = plt.figure(figsize=(5.6, 8.0), facecolor=NIGHT_SEA)
     ax = fig.add_axes((0, 0, 1, 1))
-    ax.imshow(night_rgb(lights[2016][0], thai), extent=extent, interpolation="bilinear")
+    ax.imshow(rgb_2016, extent=extent, interpolation="bilinear")
     draw_provinces(ax, provinces, edge="#6f8fbf", lw=0.25, alpha=0.18)
     for name, (lon, lat, ox, oy) in CITIES.items():
         ax.annotate(name, (lon, lat), (lon + ox, lat + oy), fontsize=7, color="#e8eefc", alpha=0.9,
@@ -218,6 +220,23 @@ def main() -> None:
             transform=ax.transAxes, fontsize=7.5, color="#9fb0d0", va="top")
     ax.text(0.98, 0.008, credit, transform=ax.transAxes, fontsize=5, color="#7d8db0", ha="right", va="bottom")
     fig.savefig(FIG / "fig_lights_thailand.png", dpi=220, facecolor=NIGHT_SEA)
+    plt.close(fig)
+
+    # README banner: the same night image beside the project name (docs/assets/banner.png)
+    fig = plt.figure(figsize=(14, 5.2), facecolor=NIGHT_SEA)
+    ax = fig.add_axes((0.02, 0.03, 0.28, 0.94))
+    ax.imshow(rgb_2016, extent=extent, interpolation="bilinear")
+    ax.set_xlim(BBOX[0], BBOX[1])
+    ax.set_ylim(BBOX[2], BBOX[3])
+    ax.set_aspect(aspect)
+    ax.axis("off")
+    fig.text(0.35, 0.64, "thainowcast", fontsize=46, fontweight="bold", color="#f5a623", va="center")
+    fig.text(0.352, 0.43, "Pseudo-real-time nowcasting of Thai GDP and inflation\nfrom official statistics and alternative data",
+             fontsize=15, color="#e8eefc", va="center", linespacing=1.4)
+    fig.text(0.352, 0.25, "Google Trends · nighttime lights · Sentinel-5P NO2 · online prices · mobility",
+             fontsize=11, color="#9fb0d0", va="center")
+    fig.text(0.985, 0.04, "Thailand at night, 2016 · " + credit, fontsize=7, color="#7d8db0", ha="right")
+    fig.savefig(ROOT / "docs" / "assets" / "banner.png", dpi=120, facecolor=NIGHT_SEA)
     plt.close(fig)
 
     # Figure: Bangkok and the Eastern Seaboard, 2012 and 2016

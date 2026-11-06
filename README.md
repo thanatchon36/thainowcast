@@ -1,17 +1,19 @@
-<p align="center"><img src="docs/assets/logo.svg" alt="thainowcast logo" width="120"></p>
+<p align="center"><a href="paper/paper.pdf"><img src="docs/assets/banner.png" alt="thainowcast: Thailand at night, 2016 (NASA Black Marble)" width="100%"></a></p>
 
-<h1 align="center">thainowcast</h1>
+<p align="center">
+<a href="https://github.com/thanatchon36/thainowcast/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/thanatchon36/thainowcast/ci.yml?style=flat-square&label=CI&labelColor=0b1020&color=f5a623" alt="CI"></a>
+<a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.12-f5a623?style=flat-square&labelColor=0b1020" alt="Python 3.12"></a>
+<a href="paper/paper.pdf"><img src="https://img.shields.io/badge/paper-PDF-f5a623?style=flat-square&labelColor=0b1020" alt="Paper PDF"></a>
+<a href="docs/data_sources.md"><img src="https://img.shields.io/badge/data-synthetic-b0560f?style=flat-square&labelColor=0b1020" alt="Data: synthetic"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ffe8a3?style=flat-square&labelColor=0b1020" alt="License MIT"></a>
+</p>
 
-[![CI](https://github.com/thanatchon36/thainowcast/actions/workflows/ci.yml/badge.svg)](https://github.com/thanatchon36/thainowcast/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](pyproject.toml)
-[![Paper](https://img.shields.io/badge/paper-PDF-b2182b)](paper/paper.pdf)
-[![Data](https://img.shields.io/badge/data-synthetic-orange)](docs/data_sources.md)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
-📄 **[Download the PDF](paper/paper.pdf)** ·
-📊 **[Dashboard](dashboard/index.html)** ·
-🗂️ **[Data sources](docs/data_sources.md)** ·
-🎤 **[Pitch outline](pitch/pitch_outline.md)**
+<p align="center">
+📄 <b><a href="paper/paper.pdf">Download the PDF</a></b> ·
+📊 <b><a href="dashboard/index.html">Dashboard</a></b> ·
+🗂️ <b><a href="docs/data_sources.md">Data sources</a></b> ·
+🎤 <b><a href="pitch/pitch_outline.md">Pitch outline</a></b>
+</p>
 
 **Pseudo-real-time nowcasting of Thai GDP growth and headline inflation from official monthly statistics and
 alternative data** (Google Trends, nighttime lights, Sentinel-5P NO2, online prices, mobility). The pipeline runs a
@@ -85,9 +87,10 @@ monthly statistics already deliver, and when. Every table, figure and in-text nu
 `data/processed/`, so `make all` on the real files replaces them all.
 
 - Tables: [`paper/tables/`](paper/tables/) · Figures: [`paper/figures/`](paper/figures/)
-- Section 3.3 shows Thailand at night from the NASA Black Marble composites (real data, built by `make geo`):
+- Section 3.3, *The geography of activity, seen from space*: a province map and three nighttime-lights figures
+  from the NASA Black Marble composites (real data, built by `make geo`; the banner above is the 2016 image).
 
-<p align="center"><img src="paper/figures/fig_lights_thailand.png" alt="Thailand at night, 2016" width="360"></p>
+<p align="center"><img src="paper/figures/fig_lights_bkk_eec.png" alt="Bangkok and the Eastern Seaboard at night, 2012 and 2016" width="640"></p>
 - Pitch (3 minutes): [`pitch/pitch_outline.md`](pitch/pitch_outline.md)
 
 ## Repository layout
