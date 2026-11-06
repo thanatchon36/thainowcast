@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-11-05
+## [0.1.0] - 2026-11-06
 
 ### Added
 - Indicator registry and release calendar (`config/indicators.yaml`): 26 series with agency, start, publication

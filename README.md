@@ -6,6 +6,7 @@
 <a href="paper/paper.pdf"><img src="https://img.shields.io/badge/paper-PDF-f5a623?style=flat-square&labelColor=0b1020" alt="Paper PDF"></a>
 <a href="docs/data_sources.md"><img src="https://img.shields.io/badge/data-synthetic-b0560f?style=flat-square&labelColor=0b1020" alt="Data: synthetic"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ffe8a3?style=flat-square&labelColor=0b1020" alt="License MIT"></a>
+<a href="https://zenodo.org/badge/latestdoi/1447751470"><img src="https://zenodo.org/badge/1447751470.svg" alt="DOI"></a>
 </p>
 
 <p align="center">
@@ -130,4 +131,4 @@ give the DM test little power; alternative-data construction (Trends rescaling, 
 corrections, scraping terms of service) is the user's responsibility. See paper §7.
 
 ## Citation
-See [`CITATION.cff`](CITATION.cff). License: MIT.
+See [`CITATION.cff`](CITATION.cff); each release is archived on Zenodo (DOI badge above). License: MIT.
