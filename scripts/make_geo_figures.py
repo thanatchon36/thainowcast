@@ -4,7 +4,8 @@ Real data, unlike the synthetic panel: NASA Earth Observatory's Black Marble 201
 grayscale composites (3 km, public domain) and geoBoundaries ADM1 province boundaries
 (OpenStreetMap contributors, ODbL). Downloads go to data/raw/geo/ (not committed); outputs are
 paper/figures/fig_map_thailand.png, fig_lights_thailand.png, fig_lights_bkk_eec.png, fig_lights_share.png,
-paper/figures/geo_summary.json, whose numbers fill the {{geo:...}} placeholders in paper.md, and the
+paper/figures/geo_summary.json, whose numbers fill the {{geo:...}} placeholders in paper.md, the per-province
+table paper/figures/geo_provinces.csv, and the
 README banner docs/assets/banner.png.
 
 The composites are 8-bit images scaled for display, not calibrated radiance: brightness sums are
@@ -305,6 +306,12 @@ def main() -> None:
     }
     (FIG / "geo_summary.json").write_text(json.dumps({k: round(v, 1) for k, v in summary.items()}, indent=2) + "\n",
                                           encoding="utf-8")
+    # the per-province table behind Figure 6, for the Hugging Face dataset
+    rows = ["province,land_share_pct,light_share_2012_pct,light_share_2016_pct,saturated_pixels_2016_pct"]
+    for p in sorted(m, key=share[2016].get, reverse=True):
+        sat = 100 * float((lights[2016][0][m[p]] >= 255).mean())
+        rows.append(f"{p},{area_share[p]:.4f},{share[2012][p]:.4f},{share[2016][p]:.4f},{sat:.2f}")
+    (FIG / "geo_provinces.csv").write_text("\n".join(rows) + "\n", encoding="utf-8")
     print(json.dumps({k: round(v, 1) for k, v in summary.items()}, indent=2))
 
 

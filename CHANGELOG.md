@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Dataset on Hugging Face, [`thanatchon36/thainowcast`](https://huggingface.co/datasets/thanatchon36/thainowcast): the
+  synthetic panel with release dates, the indicator registry, backtest, evaluation and live results, and the
+  per-province night-light table (real data, ODbL).
+- `make geo` also writes `paper/figures/geo_provinces.csv`, the per-province table behind Figure 6.
+
 ## [0.1.0] - 2026-11-06
 
 ### Added

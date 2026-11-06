@@ -7,12 +7,14 @@
 <a href="docs/data_sources.md"><img src="https://img.shields.io/badge/data-synthetic-b0560f?style=flat-square&labelColor=0b1020" alt="Data: synthetic"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ffe8a3?style=flat-square&labelColor=0b1020" alt="License MIT"></a>
 <a href="https://zenodo.org/badge/latestdoi/1447751470"><img src="https://zenodo.org/badge/1447751470.svg" alt="DOI"></a>
+<a href="https://huggingface.co/datasets/thanatchon36/thainowcast"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20dataset-thainowcast-f5a623?style=flat-square&labelColor=0b1020" alt="Hugging Face dataset"></a>
 </p>
 
 <p align="center">
 📄 <b><a href="paper/paper.pdf">Download the PDF</a></b> ·
 📊 <b><a href="dashboard/index.html">Dashboard</a></b> ·
 🗂️ <b><a href="docs/data_sources.md">Data sources</a></b> ·
+🤗 <b><a href="https://huggingface.co/datasets/thanatchon36/thainowcast">Dataset</a></b> ·
 🎤 <b><a href="pitch/pitch_outline.md">Pitch outline</a></b>
 </p>
 
@@ -88,6 +90,8 @@ monthly statistics already deliver, and when. Every table, figure and in-text nu
 `data/processed/`, so `make all` on the real files replaces them all.
 
 - Tables: [`paper/tables/`](paper/tables/) · Figures: [`paper/figures/`](paper/figures/)
+- Dataset on Hugging Face: [`thanatchon36/thainowcast`](https://huggingface.co/datasets/thanatchon36/thainowcast), with the
+  synthetic panel, the backtest and live results, and the per-province night-light table (real data)
 - Section 3.3, *The geography of activity, seen from space*: a province map and three nighttime-lights figures
   from the NASA Black Marble composites (real data, built by `make geo`; the banner above is the 2016 image).
 
