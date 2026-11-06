@@ -8,5 +8,27 @@
     }
   ],
   "license": "mit",
-  "keywords": ["nowcasting", "Thailand", "GDP", "inflation", "alternative data", "dynamic factor model", "MIDAS"]
+  "keywords": [
+    "nowcasting",
+    "Thailand",
+    "GDP",
+    "inflation",
+    "alternative data",
+    "dynamic factor model",
+    "MIDAS"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://thanatchon36.github.io/thainowcast/paper/",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-workingpaper",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://huggingface.co/datasets/thanatchon36/thainowcast",
+      "relation": "isSupplementedBy",
+      "resource_type": "dataset",
+      "scheme": "url"
+    }
+  ]
 }

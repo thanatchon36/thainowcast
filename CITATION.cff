@@ -16,6 +16,7 @@ date-released: 2026-11-06
 doi: 10.5281/zenodo.23995547
 license: MIT
 repository-code: "https://github.com/thanatchon36/thainowcast"
+url: "https://thanatchon36.github.io/thainowcast/paper/"
 keywords: [nowcasting, thailand, gdp, inflation, alternative-data, dynamic-factor-model, midas]
 preferred-citation:
   type: generic
@@ -24,4 +25,5 @@ preferred-citation:
     - family-names: Chongmankhong
       given-names: Thanatchon
   year: 2026
+  url: "https://thanatchon36.github.io/thainowcast/paper/"
   notes: "Working paper draft; results are from synthetic test data."
