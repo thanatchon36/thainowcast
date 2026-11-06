@@ -21,9 +21,9 @@ GROUP_COLORS = {
 MODEL_COLORS = {"rw": "#9e9e9e", "ar": "#555555", "bridge": "#2f4b7c", "midas": "#665191", "dfm": "#d45087", "enet": "#ff7c43", "lgbm": "#2a9d8f"}
 
 
-def _save(fig, path: Path) -> Path:
+def _save(fig, path: Path, rect: tuple[float, float, float, float] = (0, 0, 1, 1)) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.tight_layout()
+    fig.tight_layout(rect=rect)  # rect leaves room for a figure-level legend
     fig.savefig(path, dpi=160)
     plt.close(fig)
     return path
@@ -135,7 +135,7 @@ def plot_rmsfe_by_horizon(summary: pd.DataFrame, feature_set: str, path: Path, t
 
 
 def plot_ablation(abl_gdp: pd.DataFrame, abl_cpi: pd.DataFrame, path: Path) -> Path:
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.8), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(9, 2.15), sharey=True)
     for ax, abl, title in zip(axes, [abl_gdp, abl_cpi], ["GDP (origin PR)", "CPI (origin PR)"]):
         sets = [s for s in ["hard_only", "hard_trends", "hard_lights", "hard_no2", "hard_prices", "all"] if s in set(abl["feature_set"])]
         models = sorted(abl["model"].unique(), key=lambda m: list(MODEL_COLORS).index(m) if m in MODEL_COLORS else 99)
@@ -145,10 +145,16 @@ def plot_ablation(abl_gdp: pd.DataFrame, abl_cpi: pd.DataFrame, path: Path) -> P
             ax.bar(np.arange(len(sets)) + j * w - 0.4 + w / 2, vals, width=w, label=m, color=MODEL_COLORS.get(m, "#999"))
         ax.axhline(1, color="#111", lw=0.8, ls="--")
         ax.set_xticks(np.arange(len(sets)))
-        ax.set_xticklabels([s.replace("hard_", "+") if s != "hard_only" else "hard only" for s in sets], rotation=20, fontsize=8)
+        ax.set_xticklabels([s.replace("hard_", "+") if s != "hard_only" else "hard only" for s in sets], fontsize=8)
         ax.set_title(title, fontsize=10)
-    axes[0].set_ylabel("RMSFE relative to hard-data-only")
-    axes[0].legend(fontsize=7)
+    axes[0].set_ylabel("RMSFE relative to\nhard-data-only", fontsize=9)
+    # Legend in one row at the top of the CPI panel, whose bars stay well below the GDP maximum that sets the
+    # shared y-axis; the axis gets headroom so the row never touches a bar.
+    top = max(ax.get_ylim()[1] for ax in axes)
+    axes[0].set_ylim(0, top * 1.12)
+    handles, labels = axes[0].get_legend_handles_labels()
+    axes[1].legend(handles, labels, fontsize=7.5, ncol=len(labels), frameon=False, loc="upper center",
+                   columnspacing=1.2, handlelength=1.4, borderaxespad=0.3)
     return _save(fig, path)
 
 
