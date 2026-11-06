@@ -169,12 +169,20 @@ def cmd_paper(args):
 
     pdf = build_paper(PAPER_DIR, PROCESSED_DIR)
     print("paper ->", pdf)
+    cmd_web(args)
+
+
+def cmd_web(args):
+    from .paper_web import build_web
+
+    page = build_web(PAPER_DIR, PROCESSED_DIR, PAPER_DIR.parent / "docs" / "paper")
+    print("web reader ->", page)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="thainowcast")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name, fn in [("synthetic", cmd_synthetic), ("data", cmd_data), ("eval", cmd_eval), ("live", cmd_live), ("dashboard", cmd_dashboard), ("paper", cmd_paper)]:
+    for name, fn in [("synthetic", cmd_synthetic), ("data", cmd_data), ("eval", cmd_eval), ("live", cmd_live), ("dashboard", cmd_dashboard), ("paper", cmd_paper), ("web", cmd_web)]:
         p = sub.add_parser(name)
         p.add_argument("--asof", default="2026-11-05")
         p.add_argument("--targets", nargs="*", default=TARGETS_DEFAULT)

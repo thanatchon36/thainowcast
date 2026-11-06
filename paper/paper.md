@@ -305,7 +305,7 @@ make data           # loads data/raw (real where present, synthetic_* otherwise)
 make eval           # backtest, DM tests, intervals, ablations, tables, figures
 make live           # nowcast of the current quarter / month + news
 make dashboard      # dashboard/index.html
-make paper          # paper/paper.tex and paper/paper.pdf (pandoc + tectonic)
+make paper          # paper/paper.pdf (pandoc + tectonic) and docs/paper/
 make arxiv          # paper/arxiv.tar.gz, the arXiv source bundle
 make test           # 27 tests incl. the leakage test
 ```

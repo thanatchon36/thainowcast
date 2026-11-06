@@ -3,6 +3,7 @@
 <p align="center">
 <a href="https://github.com/thanatchon36/thainowcast/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/thanatchon36/thainowcast/ci.yml?style=flat-square&label=CI&labelColor=0b1020&color=f5a623" alt="CI"></a>
 <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.12-f5a623?style=flat-square&labelColor=0b1020" alt="Python 3.12"></a>
+<a href="https://thanatchon36.github.io/thainowcast/paper/"><img src="https://img.shields.io/badge/paper-read%20online-f5a623?style=flat-square&labelColor=0b1020" alt="Paper: read online"></a>
 <a href="paper/paper.pdf"><img src="https://img.shields.io/badge/paper-PDF-f5a623?style=flat-square&labelColor=0b1020" alt="Paper PDF"></a>
 <a href="docs/data_sources.md"><img src="https://img.shields.io/badge/data-synthetic-b0560f?style=flat-square&labelColor=0b1020" alt="Data: synthetic"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ffe8a3?style=flat-square&labelColor=0b1020" alt="License MIT"></a>
@@ -11,6 +12,7 @@
 </p>
 
 <p align="center">
+📖 <b><a href="https://thanatchon36.github.io/thainowcast/paper/">Read the paper online</a></b> ·
 📄 <b><a href="paper/paper.pdf">Download the PDF</a></b> ·
 📊 <b><a href="dashboard/index.html">Dashboard</a></b> ·
 🗂️ <b><a href="docs/data_sources.md">Data sources</a></b> ·
@@ -52,7 +54,8 @@ nowcast JSON, news), `paper/tables/` and `paper/figures/` (generated), `dashboar
 | `live` | Nowcast the current quarter / month as of `ASOF` |
 | `dashboard` | Static HTML dashboard → `dashboard/index.html` |
 | `geo` | Map and nighttime-lights figures for paper §3.3 (downloads NASA Black Marble + geoBoundaries, ~15 MB) |
-| `paper` | Build `paper/paper.tex` and `paper/paper.pdf` (pandoc + tectonic) |
+| `paper` | Build `paper/paper.tex`, `paper/paper.pdf` (pandoc + tectonic) and the web reader `docs/paper/` |
+| `web` | Web reader only → `docs/paper/index.html`, served at <https://thanatchon36.github.io/thainowcast/paper/> |
 | `arxiv` | arXiv source bundle → `paper/arxiv.tar.gz` (prints title, abstract and comments for the form) |
 
 ## What the pipeline does

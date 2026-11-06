@@ -1,0 +1,1711 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ThaiNowcast</title>
+<meta name="description" content="Working paper: pseudo-real-time nowcasting of Thai GDP and inflation with official and alternative data.">
+<meta name="author" content="Thanatchon Chongmankhong">
+<style>
+/* Web reader for paper/paper.md, in the format of the underwater-collateral reader: one reading column
+   (~46rem) with a results strip up top. System font stacks only: the page is a single self-contained
+   file with no third-party requests. Colour tokens on :root, redefined for dark. */
+:root {
+  --paper: #fbfbf9; --ink: #17191c; --ink-2: #4c5058; --rule: #dcdcd6;
+  --accent: #1f5fae; --accent-soft: #e6eef8;
+  --pos: #1d6b52; --pos-soft: #e3f1ea; --null: #6b6f78; --null-soft: #eeeeea;
+  --find: #8a5a12; --find-soft: #f6eedd; --plate: #ffffff; --quote: #f3f3ef;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #15171a; --ink: #e8e9ec; --ink-2: #a6abb4; --rule: #30343a;
+    --accent: #7fb0ec; --accent-soft: #1b2a3d; --pos: #7dcfac; --pos-soft: #16302a;
+    --null: #a6abb4; --null-soft: #23262b; --find: #e7bd73; --find-soft: #33291a;
+    --plate: #f4f4f2; --quote: #1d2024; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #15171a; --ink: #e8e9ec; --ink-2: #a6abb4; --rule: #30343a;
+  --accent: #7fb0ec; --accent-soft: #1b2a3d; --pos: #7dcfac; --pos-soft: #16302a;
+  --null: #a6abb4; --null-soft: #23262b; --find: #e7bd73; --find-soft: #33291a;
+  --plate: #f4f4f2; --quote: #1d2024; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.62 var(--font-body); }
+.page { max-width: 46rem; margin: 0 auto; padding-inline: 16px; padding-block: 48px 72px;
+  display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 650; text-wrap: balance; line-height: 1.2; }
+h1 { font-size: clamp(1.7rem, 4.2vw, 2.35rem); margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; margin: 2.2em 0 0.5em; }
+h3 { font-size: 1.12rem; margin: 1.8em 0 0.4em; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code { font: 500 0.84em var(--font-mono); overflow-wrap: anywhere; }
+pre { background: var(--quote); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px;
+  overflow-x: auto; font-size: 0.84rem; line-height: 1.5; }
+pre code { font-weight: 400; font-size: inherit; overflow-wrap: normal; }
+.masthead { display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 28px; }
+.kicker { margin: 0; font: 500 0.78rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent); }
+.subtitle { margin: 0; font-style: italic; color: var(--ink-2); font-size: 1.05rem; }
+.byline { margin: 0; color: var(--ink-2); }
+.meta { margin: 0; font: 400 0.8rem/1.6 var(--font-mono); color: var(--ink-2); }
+.meta b { font-weight: 500; color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.actions a { display: inline-block; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px;
+  font: 500 0.78rem var(--font-mono); text-decoration: none; color: var(--ink); }
+.actions a:hover { border-color: var(--accent); color: var(--accent); }
+.abstract h2, .results h2, .toc h2, .cite h2 { margin: 0 0 10px; font-size: 0.82rem; font-family: var(--font-mono);
+  font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-2); }
+.abstract-body p { margin: 0 0 0.8em; font-size: 1.04rem; }
+.abstract-body p:last-child { margin-bottom: 0; }
+.results .note { margin: 0 0 14px; color: var(--ink-2); font-size: 0.95rem; }
+.result-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 8px; }
+.r { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "id tag" "text text"; gap: 2px 10px;
+  align-content: start; padding: 10px 12px; border-radius: 6px; border-left: 3px solid; font-size: 0.9rem; line-height: 1.4; }
+.r-pos { background: var(--pos-soft); border-color: var(--pos); }
+.r-ref { background: var(--find-soft); border-color: var(--find); }
+.r-null, .r-nf { background: var(--null-soft); border-color: var(--null); }
+.r-id { grid-area: id; font: 500 0.85rem var(--font-mono); }
+.r-text { grid-area: text; }
+.r-text small { display: block; color: var(--ink-2); font-size: 0.8rem; margin-top: 2px; }
+.toc ul { margin: 0; padding-left: 1.2em; columns: 2 14rem; column-gap: 32px; }
+.toc li { break-inside: avoid; }
+.toc ul ul { columns: 1; padding-left: 1em; font-size: 0.92em; color: var(--ink-2); }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.paper h1 { font-size: 1.55rem; margin: 2em 0 0.5em; padding-top: 0.6em; border-top: 1px solid var(--rule); }
+.paper p, .paper li { hyphens: auto; }
+.paper p { margin: 0 0 1em; }
+.paper math[display="block"] { overflow-x: auto; max-width: 100%; }
+/* MathML does not line-break: a long inline formula scrolls on its own instead of widening the page */
+.paper p > math { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+.paper .header-section-number { color: var(--accent); margin-right: 0.5em; font-family: var(--font-mono); font-size: 0.85em; font-weight: 500; }
+.paper blockquote { margin: 1.2em 0; padding: 10px 16px; border-left: 3px solid var(--rule); background: var(--quote);
+  border-radius: 0 6px 6px 0; font-size: 0.93rem; color: var(--ink-2); }
+.paper blockquote p:last-child { margin-bottom: 0; }
+figure { margin: 1.6em 0; display: flex; flex-direction: column; gap: 10px; }
+figure img { background: var(--plate); padding: 12px; border-radius: 6px; border: 1px solid var(--rule); max-width: 100%; height: auto; }
+/* the night-lights images are dark by design: no light plate around them */
+figure img.night { background: #03060d; padding: 0; }
+figcaption, caption, .tcap { font-size: 0.88rem; color: var(--ink-2); line-height: 1.45; text-align: left; }
+caption { caption-side: top; padding-bottom: 8px; }
+.tbl { margin: 1.6em 0; }
+.paper .tcap { margin: 0 0 8px; hyphens: auto; }
+.tscroll { overflow-x: auto; }
+/* Tables keep their natural width (scrolling sideways when wider than the column); only long text cells wrap. */
+.paper table { border-collapse: collapse; width: max-content; min-width: 100%;
+  font: 400 0.78rem/1.45 var(--font-mono); font-variant-numeric: tabular-nums; }
+.paper td { max-width: 17em; }
+/* Code in table cells must not break per letter on phones; the table scrolls sideways instead. */
+.paper table code { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+th { font-weight: 500; color: var(--ink-2); border-bottom-color: var(--ink-2); }
+.paper strong { font-weight: 650; }
+.cite { min-width: 0; }
+/* BibTeX keeps its lines intact (no mid-URL breaks); the block scrolls sideways on narrow screens. */
+.cite pre { overflow-x: auto; }
+.cite pre, .cite pre code { white-space: pre; overflow-wrap: normal; word-break: normal; }
+.colophon { border-top: 1px solid var(--rule); padding-top: 20px; color: var(--ink-2); font-size: 0.85rem; }
+.colophon p { margin: 0 0 0.7em; }
+@media (max-width: 480px) { body { font-size: 16px; } .page { padding-block: 28px 48px; gap: 28px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="masthead">
+  <p class="kicker">Working paper · thainowcast</p>
+  <h1>ThaiNowcast: Pseudo-Real-Time Nowcasting of Thai GDP and Inflation with Official and Alternative Data</h1>
+  <p class="subtitle">A reproducible pipeline, a mixed-frequency model race, and a synthetic-data validation</p>
+  <p class="byline">Thanatchon Chongmankhong · <a href="https://github.com/thanatchon36/thainowcast">github.com/thanatchon36/thainowcast</a></p>
+  <p class="meta"><b>November 2026 (information set as of 2026-11-05)</b> · nowcasting, mixed-frequency models, dynamic factor model, alternative data, conformal prediction, Thailand · JEL C53, C55, E37</p>
+  <ul class="actions"><li><a href="paper.pdf">Download PDF</a></li><li><a href="https://github.com/thanatchon36/thainowcast">Code and replication</a></li><li><a href="https://huggingface.co/datasets/thanatchon36/thainowcast">Data (Hugging Face)</a></li><li><a href="https://doi.org/10.5281/zenodo.23995547">Zenodo archive</a></li></ul>
+</header>
+<section class="abstract" aria-label="Abstract">
+  <h2>Abstract</h2>
+  <div class="abstract-body"><p>We build an open, pseudo-real-time nowcasting system for two Thai headline statistics: quarterly real GDP growth, published by the NESDC about seven weeks after the quarter ends, and monthly headline CPI inflation, published by the Ministry of Commerce in the first week of the following month. The system ingests fourteen official monthly indicators and five families of alternative data (Google Trends, VIIRS nighttime lights, Sentinel-5P NO2, scraped online prices and Google mobility), reconstructs the information set available on every nowcast date from a release calendar, and runs a race between bridge equations, MIDAS, a mixed-frequency dynamic factor model estimated by EM, elastic net and gradient boosting against autoregressive benchmarks. Accuracy is evaluated in an expanding-window backtest from 2015 at several origins inside each period, including the day before the official release, split by regime (pre-COVID, COVID, post-COVID), with Diebold-Mariano tests and conformal prediction intervals. Each alternative data family is switched on one at a time to measure its marginal value. A Kalman-filter news decomposition attributes every revision of the nowcast to the data releases that caused it. Because the official sources are unreachable from the environment in which this draft was produced, every number reported here comes from a synthetic one-factor economy that mimics the timing, missingness and crisis episodes of the Thai data; the numbers therefore validate the pipeline, not the Thai economy. Re-running <code>make all</code> on the real files replaces every table and figure in this document.</p></div>
+</section>
+<section class="results" aria-label="Results at a glance">
+  <h2>Results at a glance</h2>
+  <p class="note">Headline numbers, generated from the result files. All of them come from the synthetic economy and validate the pipeline, not the Thai economy. Amber: pipeline results; grey: pending.</p>
+  <ul class="result-list"><li class="r r-ref"><span class="r-id">GDP · nowcast</span><span class="r-text">2026Q3 growth nowcast 2.62% y-o-y<small>80% band 1.23 to 4.01; Elastic net, hard data only; information set 2026-11-05</small></span></li>
+<li class="r r-ref"><span class="r-id">CPI · nowcast</span><span class="r-text">2026-10 headline inflation nowcast 2.31% y-o-y<small>80% band 1.76 to 2.86; Elastic net, all</small></span></li>
+<li class="r r-ref"><span class="r-id">GDP · backtest</span><span class="r-text">Best pre-release RMSFE 1.12 pp against 2.54 for AR<small>the elastic net on hard data + online prices; ratio to AR 0.44; gains concentrated in the COVID quarters</small></span></li>
+<li class="r r-ref"><span class="r-id">CPI · backtest</span><span class="r-text">Elastic net with all data: pre-release RMSFE 0.44 pp against 0.81 for AR<small>0.55 with hard data only; no model beats AR at the end-of-month origin</small></span></li>
+<li class="r r-ref"><span class="r-id">Alternative data</span><span class="r-text">Online prices cut the CPI elastic-net RMSFE to 0.82 of hard data only<small>noisy or short families can hurt: elastic net with lights 1.58, bridge with Trends 1.15 for GDP</small></span></li>
+<li class="r r-ref"><span class="r-id">Intervals</span><span class="r-text">80% conformal coverage 0.61 to 0.79 for GDP, 0.71 to 0.92 for CPI<small>pre-release origin, calibrated on past nowcast errors; undercoverage concentrated in 2020</small></span></li>
+<li class="r r-null"><span class="r-id">Thai data</span><span class="r-text">Real-data results pending<small>every number here comes from a synthetic one-factor economy; make all on the real files replaces them</small></span></li></ul>
+</section>
+<nav class="toc" aria-label="Contents"><h2>Contents</h2>
+<ul>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">1</span> Introduction</a></li>
+<li><a href="#related-work" id="toc-related-work"><span class="toc-section-number">2</span> Related work</a></li>
+<li><a href="#data-and-the-release-calendar" id="toc-data-and-the-release-calendar"><span class="toc-section-number">3</span> Data and the release calendar</a></li>
+<li><a href="#methodology" id="toc-methodology"><span class="toc-section-number">4</span> Methodology</a></li>
+<li><a href="#results" id="toc-results"><span class="toc-section-number">5</span> Results</a></li>
+<li><a href="#robustness" id="toc-robustness"><span class="toc-section-number">6</span> Robustness</a></li>
+<li><a href="#limitations" id="toc-limitations"><span class="toc-section-number">7</span> Limitations</a></li>
+<li><a href="#conclusion" id="toc-conclusion"><span class="toc-section-number">8</span> Conclusion</a></li>
+<li><a href="#references" id="toc-references">References</a></li>
+<li><a href="#appendix-a-the-synthetic-economy" id="toc-appendix-a-the-synthetic-economy">Appendix A: the synthetic economy</a></li>
+<li><a href="#appendix-b-reproducibility" id="toc-appendix-b-reproducibility">Appendix B: reproducibility</a></li>
+</ul>
+</nav>
+<article class="paper">
+<blockquote>
+<p><strong>Status of this draft.</strong> This is a SYNTHETIC-DATA RUN. All tables and figures were generated by the code in the accompanying repository from synthetic test data; the text describes what those tables show so that the reasoning can be checked, and should be rewritten once real data are in place.</p>
+</blockquote>
+<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction</h1>
+<p>Thailand’s quarterly GDP arrives late. The National Economic and Social Development Council (NESDC) publishes the first estimate roughly 48 days after the end of the quarter, so for most of a quarter, and for a month and a half after it, policy makers, banks and firms work without an official reading of the economy’s current state. Headline CPI is faster, about six days after the month ends, but monthly price shocks matter for monetary policy and wage bargaining, and the information needed to anticipate them, retail fuel prices, farm prices and online shelf prices, is available daily. Nowcasting, the use of higher-frequency and more timely indicators to estimate the current value of a low-frequency target before it is published, is the standard answer to this problem in central banks and statistical agencies [Giannone, Reichlin and Small, 2008; Bańbura et al., 2013].</p>
+<p>Two things make nowcasting hard in practice and are easy to get wrong in a research project. The first is timing. A monthly indicator for March is not known in March; it is known when its agency publishes it, which for Thai manufacturing output is about a month later and for electricity consumption about six weeks later. An evaluation that aligns indicators by reference period instead of by publication date quietly uses the future and overstates accuracy. The second is the ragged edge: on any given day different indicators stop at different months, so a model must cope with a block of missing values at the end of the sample that changes shape every week.</p>
+<p>This paper describes ThaiNowcast, a pipeline built around those two problems. Every observation is stored with its publication date; the information set at a nowcast origin is reconstructed by filtering on that date; a unit test fails if any model ever sees a value published after its origin. The ragged edge is handled either explicitly, by forecasting the missing months of each indicator before aggregating it (bridge, MIDAS, regularized regression, boosting), or natively, by a mixed-frequency dynamic factor model (DFM) whose expectation-maximization estimator treats missing values as part of the model [Bańbura and Modugno, 2014]. We then ask the applied question that motivates the exercise: do alternative data, in particular Thai-language Google Trends, satellite nighttime lights, satellite NO2 and scraped online prices, improve nowcasts over what official monthly statistics already deliver, and when?</p>
+<p>The contribution is threefold. First, an open, tested, end-to-end pipeline for Thailand, from a registry of sources with their release lags to a static dashboard and this document, reproducible with one command. Second, an evaluation design that takes the data flow seriously: origins at the end of each month of the quarter and on the day before the official release, regime splits, Diebold-Mariano tests with a small-sample correction, conformal intervals calibrated on past nowcast errors, and a news decomposition of nowcast revisions. Third, an ablation that isolates the marginal value of each alternative data family rather than reporting “alternative data” as a block.</p>
+<p>The environment in which this draft was produced could not reach the Thai statistical agencies, so the empirical sections run on a synthetic economy designed to have the same frequencies, start dates, publication lags, discontinuities and crisis episodes as the real data (Appendix A). We are explicit about this throughout. The synthetic results are informative about one thing only: whether the machinery behaves as theory predicts, for instance that accuracy improves as the quarter’s data arrive, that the DFM can exploit short series that linear models must discard, and that intervals built from past errors are approximately calibrated. They say nothing about Thailand. Section 7 lists what changes when the real files are dropped into <code>data/raw/</code>.</p>
+<h1 data-number="2" id="related-work"><span class="header-section-number">2</span> Related work</h1>
+<p>The modern nowcasting literature starts with Giannone, Reichlin and Small (2008), who formalized the idea of a daily-updated estimate of current-quarter GDP from a large panel of monthly releases using a dynamic factor model and the Kalman filter, and who introduced the “news” interpretation of nowcast revisions. Bańbura, Giannone, Modugno and Reichlin (2013) survey the approach and the real-time data flow; Bańbura and Modugno (2014) provide the EM algorithm for factor models with arbitrary patterns of missing data that underlies the statsmodels implementation we use. Mariano and Murasawa (2003) give the temporal aggregation constraint that links a quarterly growth rate to the monthly latent factor. Bridge equations (regressing the quarterly target on quarterly aggregates of monthly indicators that are first extended with univariate forecasts) are the workhorse of institutional nowcasting; the MIDAS regression of Ghysels, Santa-Clara and Valkanov (2004) avoids pre-aggregation by estimating a parsimonious weight polynomial on the monthly lags. Factor-augmented and diffusion-index regressions go back to Stock and Watson (2002).</p>
+<p>Alternative data entered the literature with Choi and Varian (2012), who showed that Google Trends improves short-run forecasts of several economic series, and with Henderson, Storeygard and Weil (2012), who established nighttime lights as a proxy for economic activity where statistics are weak. Cavallo and Rigobon (2016) describe the Billion Prices Project, the scraped online-price approach to inflation measurement we imitate for CPI. Satellite tropospheric NO2 from Sentinel-5P has been used as a high-frequency industrial-activity indicator since the COVID-19 lockdowns.</p>
+<p>Machine learning entered nowcasting more recently, with regularized regressions (Tibshirani, 1996; Zou and Hastie, 2005) and gradient boosting (Ke et al., 2017) competing with factor models on panels of moderate size. Our design follows the consensus that these methods must be compared under identical pseudo-real-time information sets and that their gains tend to concentrate in turbulent periods. For prediction intervals we use split-conformal ideas (Vovk, Gammerman and Shafer, 2005; Angelopoulos and Bates, 2021) applied to past nowcast errors. For forecast comparison we use the Diebold and Mariano (1995) test with the Harvey, Leybourne and Newbold (1997) correction.</p>
+<h1 data-number="3" id="data-and-the-release-calendar"><span class="header-section-number">3</span> Data and the release calendar</h1>
+<h2 data-number="3.1" id="targets-and-indicators"><span class="header-section-number">3.1</span> Targets and indicators</h2>
+<p>Table 1 lists every series in the registry (<code>config/indicators.yaml</code>), with its source, group, frequency, sample, assumed publication lag and transformation. The two targets are real GDP growth year-on-year (NESDC) and headline CPI inflation year-on-year (Trade Policy and Strategy Office, Ministry of Commerce); the registry also carries seasonally adjusted quarter-on-quarter GDP growth as a secondary target, which can be run with <code>--targets gdp_qoq_sa</code>. We prefer the year-on-year rate as the primary GDP target because the NESDC’s seasonal adjustment is revised more heavily than the unadjusted levels, which would contaminate a pseudo-real-time evaluation that lacks true vintages.</p>
+<p>Hard data are fourteen official monthly series: the manufacturing production index (OIE), the Bank of Thailand’s private consumption and private investment indices, bank credit and PromptPay transaction values, customs exports and imports, international tourist arrivals (MOTS), airport passengers (AOT), electricity consumption (EPPO), new vehicle registrations (DLT), expressway traffic (EXAT), retail diesel prices and the farm price index (OAE). Alternative data are five Thai-language Google Trends topics (unemployment and job search, loans, car installments, travel and hotel booking, prices and fuel), national VIIRS Black Marble nighttime radiance (VNP46A3, monthly, from April 2012), Sentinel-5P tropospheric NO2 over the industrial provinces (from July 2018), a scraped online price index (from 2015) and Google Community Mobility (retail and recreation, February 2020 to October 2022, discontinued). The alternative series are deliberately short and heterogeneous, as the real ones are; that is part of what the evaluation must cope with.</p>
+<div class="tbl"><p class="tcap"><b>Table 1.</b> Data audit. Source and group as registered (group: hard official statistics or the alternative data family); lag is the assumed number of days between the end of the reference period and publication. All 26 series in this run are synthetic substitutes; no real file was found.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>series</th>
+<th>source</th>
+<th>group</th>
+<th>freq</th>
+<th>first</th>
+<th>last</th>
+<th style="text-align: right;">lag (days)</th>
+<th>transform</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gdp_yoy</td>
+<td>Real GDP growth, y-o-y (%)</td>
+<td>NESDC</td>
+<td>target</td>
+<td>Q</td>
+<td>2005Q1</td>
+<td>2026Q3</td>
+<td style="text-align: right;">48</td>
+<td>level</td>
+</tr>
+<tr>
+<td>gdp_qoq_sa</td>
+<td>Real GDP growth, q-o-q seasonally adjusted (%)</td>
+<td>NESDC</td>
+<td>target</td>
+<td>Q</td>
+<td>2005Q1</td>
+<td>2026Q3</td>
+<td style="text-align: right;">48</td>
+<td>level</td>
+</tr>
+<tr>
+<td>cpi_yoy</td>
+<td>Headline CPI inflation, y-o-y (%)</td>
+<td>TPSO</td>
+<td>target</td>
+<td>M</td>
+<td>2005-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">6</td>
+<td>level</td>
+</tr>
+<tr>
+<td>mpi</td>
+<td>Manufacturing Production Index</td>
+<td>OIE</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>pci</td>
+<td>Private Consumption Index</td>
+<td>BOT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>pii</td>
+<td>Private Investment Index</td>
+<td>BOT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>credit</td>
+<td>Commercial bank loans outstanding</td>
+<td>BOT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>promptpay</td>
+<td>PromptPay transaction value</td>
+<td>BOT</td>
+<td>hard</td>
+<td>M</td>
+<td>2016-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>exports</td>
+<td>Merchandise exports (USD)</td>
+<td>Customs Department</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">25</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>imports</td>
+<td>Merchandise imports (USD)</td>
+<td>Customs Department</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">25</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>tourists</td>
+<td>International tourist arrivals</td>
+<td>MOTS</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">20</td>
+<td>log_yoy</td>
+</tr>
+<tr>
+<td>aot_pax</td>
+<td>AOT airport passengers</td>
+<td>AOT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">20</td>
+<td>log_yoy</td>
+</tr>
+<tr>
+<td>electricity</td>
+<td>Electricity consumption</td>
+<td>EPPO</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">45</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>vehicle_reg</td>
+<td>New vehicle registrations</td>
+<td>DLT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">15</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>expressway</td>
+<td>Expressway traffic volume</td>
+<td>EXAT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">30</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>oil_retail</td>
+<td>Retail diesel price (monthly average)</td>
+<td>EPPO / PTT</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">1</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>agri_price</td>
+<td>Farm price index</td>
+<td>OAE</td>
+<td>hard</td>
+<td>M</td>
+<td>2004-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">15</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>gt_unemploy</td>
+<td>Google Trends: unemployment / job search (TH)</td>
+<td>Google Trends</td>
+<td>Trends</td>
+<td>M</td>
+<td>2008-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">3</td>
+<td>yoy_diff</td>
+</tr>
+<tr>
+<td>gt_loan</td>
+<td>Google Trends: loan / borrowing (TH)</td>
+<td>Google Trends</td>
+<td>Trends</td>
+<td>M</td>
+<td>2008-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">3</td>
+<td>yoy_diff</td>
+</tr>
+<tr>
+<td>gt_car_installment</td>
+<td>Google Trends: car installment (TH)</td>
+<td>Google Trends</td>
+<td>Trends</td>
+<td>M</td>
+<td>2008-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">3</td>
+<td>yoy_diff</td>
+</tr>
+<tr>
+<td>gt_travel</td>
+<td>Google Trends: travel / hotel booking (TH)</td>
+<td>Google Trends</td>
+<td>Trends</td>
+<td>M</td>
+<td>2008-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">3</td>
+<td>yoy_diff</td>
+</tr>
+<tr>
+<td>gt_prices</td>
+<td>Google Trends: prices / fuel price (TH)</td>
+<td>Google Trends</td>
+<td>Trends</td>
+<td>M</td>
+<td>2008-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">3</td>
+<td>yoy_diff</td>
+</tr>
+<tr>
+<td>nightlights</td>
+<td>Nighttime lights radiance, national sum (VNP46A3)</td>
+<td>NASA Black Marble</td>
+<td>lights</td>
+<td>M</td>
+<td>2012-04</td>
+<td>2026-10</td>
+<td style="text-align: right;">40</td>
+<td>log_yoy</td>
+</tr>
+<tr>
+<td>no2</td>
+<td>Tropospheric NO2 column, industrial provinces (Sentinel-5P)</td>
+<td>ESA Copernicus</td>
+<td>NO2</td>
+<td>M</td>
+<td>2018-07</td>
+<td>2026-10</td>
+<td style="text-align: right;">5</td>
+<td>log_yoy</td>
+</tr>
+<tr>
+<td>online_prices</td>
+<td>Online price index (scraped daily, Billion-Prices style)</td>
+<td>own scraper</td>
+<td>online prices</td>
+<td>M</td>
+<td>2015-01</td>
+<td>2026-10</td>
+<td style="text-align: right;">1</td>
+<td>yoy</td>
+</tr>
+<tr>
+<td>mobility</td>
+<td>Google Community Mobility: retail &amp; recreation (% vs baseline)</td>
+<td>Google (discontinued 2022-10)</td>
+<td>mobility</td>
+<td>M</td>
+<td>2020-02</td>
+<td>2022-10</td>
+<td style="text-align: right;">2</td>
+<td>level</td>
+</tr>
+</tbody>
+</table></div></div>
+<h2 data-number="3.2" id="publication-lags-and-the-information-set"><span class="header-section-number">3.2</span> Publication lags and the information set</h2>
+<p>Figure 1 shows the publication lags that drive the pseudo-real-time engine. Retail fuel prices, online prices, Google Trends and NO2 arrive within a week of the end of the month; customs trade and tourist arrivals within about three weeks; the BOT indices and the manufacturing index at the end of the following month; electricity consumption and nighttime lights six weeks later. GDP itself arrives 48 days after the quarter ends and CPI six days after the month ends. These lags are approximations taken from each agency’s usual release timing and should be replaced by the exact dates from the agencies’ calendars before a real evaluation (Section 7).</p>
+<figure>
+<img loading="lazy" src="figures/fig_release_calendar.png" alt="Release calendar used by the pseudo-real-time engine. Each bar is an indicator’s assumed publication lag, grouped by data family; the dashed lines mark the release days of the CPI (day 6) and GDP (day 48) targets." />
+<figcaption aria-hidden="true"><b>Figure 1.</b> Release calendar used by the pseudo-real-time engine. Each bar is an indicator’s assumed publication lag, grouped by data family; the dashed lines mark the release days of the CPI (day 6) and GDP (day 48) targets.</figcaption>
+</figure>
+<p>At an origin <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, the information set <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\Omega_t</annotation></semantics></math> contains every observation whose publication date is at or before <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, for the targets as well as the indicators. Two consequences follow that a reference-period alignment would miss. First, at the end of the first month of a quarter the previous quarter’s GDP is not yet published (it arrives on day 48), so the autoregressive benchmark must forecast two steps ahead at that origin and one step at the later ones; the engine does this automatically because the benchmark sees only the released history. Second, at the end of a month none of the fast indicators for that month are available yet, since even a one-day lag places their release in the next month; the pre-release origin, one day before the official publication, is the first point at which the month’s own fast data can be used. Figure 2 plots the two target series over the sample with the three evaluation regimes shaded.</p>
+<figure>
+<img loading="lazy" src="figures/fig_targets.png" alt="Target series and evaluation regimes." />
+<figcaption aria-hidden="true"><b>Figure 2.</b> Target series and evaluation regimes.</figcaption>
+</figure>
+<h2 data-number="3.3" id="the-geography-of-activity-seen-from-space"><span class="header-section-number">3.3</span> The geography of activity, seen from space</h2>
+<p>Figure 3 places the registry on the map. Most official indicators are national aggregates, but two inputs are defined over areas: the NO2 series averages the tropospheric column over the three provinces of the Eastern Economic Corridor (EEC) and Samut Prakan, where Thailand’s heavy industry and its main deep-sea port are concentrated, and the nighttime-lights series sums radiance over all 77 provinces.</p>
+<figure>
+<img loading="lazy" src="figures/fig_map_thailand.png" alt="Thailand’s provinces, with Bangkok, the Bangkok Metropolitan Region and the area over which the NO2 series is averaged. Boundaries: geoBoundaries ADM1 [Runfola et al., 2020], © OpenStreetMap contributors." />
+<figcaption aria-hidden="true"><b>Figure 3.</b> Thailand’s provinces, with Bangkok, the Bangkok Metropolitan Region and the area over which the NO2 series is averaged. Boundaries: geoBoundaries ADM1 [Runfola et al., 2020], © OpenStreetMap contributors.</figcaption>
+</figure>
+<p>Nighttime lights are the most intuitive of the alternative data families, and Figure 4 shows why. It is the 2016 Black Marble composite built by NASA from the VIIRS day/night band on the Suomi NPP satellite [Román et al., 2018], and unlike the synthetic panel of the empirical sections it is real data. The image is a map of where economic activity takes place: the Bangkok Metropolitan Region and the Eastern Seaboard form one continuous glow, the regional centres of Chiang Mai, Udon Thani, Khon Kaen, Nakhon Ratchasima, Hat Yai and Phuket stand out as bright points, the main highways appear as strings of lit towns, and 75.8 percent of the country’s land is essentially dark (brightness below 10 on the image’s 0 to 255 scale).</p>
+<figure>
+<img loading="lazy" class="night" src="figures/fig_lights_thailand.png" alt="Thailand at night, 2016: NASA Black Marble composite (3 km), with lights outside Thailand dimmed." />
+<figcaption aria-hidden="true"><b>Figure 4.</b> Thailand at night, 2016: NASA Black Marble composite (3 km), with lights outside Thailand dimmed.</figcaption>
+</figure>
+<p>Figure 5 zooms in on the centre of the country in 2012 and 2016. The lit area along the Eastern Seaboard and on the corridor from Bangkok through Ayutthaya to Saraburi appears wider in 2016, as one would expect over four years in which the EEC was being built up; part of the difference may, however, come from processing rather than from activity, and the two images should not be differenced into a growth rate.</p>
+<figure>
+<img loading="lazy" class="night" src="figures/fig_lights_bkk_eec.png" alt="Bangkok and the Eastern Seaboard at night, 2012 and 2016 (NASA Black Marble composites)." />
+<figcaption aria-hidden="true"><b>Figure 5.</b> Bangkok and the Eastern Seaboard at night, 2012 and 2016 (NASA Black Marble composites).</figcaption>
+</figure>
+<p>Figure 6 puts numbers on the concentration. Summing image brightness within each province, the ten brightest provinces emit 31.8 percent of the country’s light; the six provinces of the Bangkok Metropolitan Region emit 14.5 percent from 1.5 percent of the land, and the three EEC provinces 10.1 percent from 2.7 percent. Bangkok itself appears smaller than it is (4.2 percent from 0.3 percent of the land) because 40.6 percent of its pixels sit at the top of the 8-bit scale: the display composite saturates in dense urban cores, a limitation that the calibrated radiance products (VNP46) reduce. This cross-sectional link between light and output is what motivates the use of lights in economics [Henderson, Storeygard and Weil, 2012]; the nowcasting models use its time-series counterpart, the monthly national radiance sum from VNP46A3, which in this draft is synthetic (Appendix A).</p>
+<figure>
+<img loading="lazy" src="figures/fig_lights_share.png" alt="Share of Thailand’s total night-light brightness by province (bars 2016, ticks 2012) against share of land area (circles), for the fifteen brightest provinces in 2016. Brightness is 8-bit and saturates in Bangkok, whose share is understated." />
+<figcaption aria-hidden="true"><b>Figure 6.</b> Share of Thailand’s total night-light brightness by province (bars 2016, ticks 2012) against share of land area (circles), for the fifteen brightest provinces in 2016. Brightness is 8-bit and saturates in Bangkok, whose share is understated.</figcaption>
+</figure>
+<p>The composites behind Figures 4 to 6 are images scaled for display, not calibrated radiance, so the shares describe where light is rather than how much; none of these figures enters a model.</p>
+<h1 data-number="4" id="methodology"><span class="header-section-number">4</span> Methodology</h1>
+<h2 data-number="4.1" id="transformations-and-the-ragged-edge"><span class="header-section-number">4.1</span> Transformations and the ragged edge</h2>
+<p>Indicators enter as year-on-year growth rates of their levels (log differences for the tourism and lights series, whose COVID-era collapses make ordinary percentage changes explode), as twelve-month differences for the bounded Google Trends indices, and as levels for mobility. A transformed value is available exactly when its latest input is, so transformation cannot leak.</p>
+<p>Two routes handle the ragged edge. For the models that work at the target frequency (bridge, elastic net, boosting), each indicator is extended to the end of the target period with an AR(1) forecast fitted on its own history, provided the trailing gap is at most six months, and then averaged to quarters; a quarter counts only when all three months are present or filled. A column whose gap is longer, such as the discontinued mobility series after 2022, is unusable at that origin and is dropped. MIDAS anchors its lag window on the last available month and re-estimates its weights for each number of missing months. The DFM takes the monthly panel with its missing values as it is.</p>
+<p>Linear models with many short regressors face a trade-off between breadth and history. We use one simple rule throughout: candidate columns are sorted by the start of their history and added in that order as long as at least 24 quarters (48 months) of complete training rows remain. A short alternative-data series therefore enters the linear models only once it has enough history, while the DFM can use it from the start. This asymmetry is one of the things the ablation measures.</p>
+<h2 data-number="4.2" id="models"><span class="header-section-number">4.2</span> Models</h2>
+<p>Let <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>q</mi></msub><annotation encoding="application/x-tex">y_q</annotation></semantics></math> be the quarterly target (or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>m</mi></msub><annotation encoding="application/x-tex">y_m</annotation></semantics></math> the monthly one) and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mi>t</mi></msub><annotation encoding="application/x-tex">X_t</annotation></semantics></math> the monthly indicator panel known at the origin.</p>
+<p><em>Random walk and AR(p).</em> The random walk repeats the last published value; the AR benchmark selects <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≤</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">p \le 4</annotation></semantics></math> by AIC on the published history and forecasts the required number of steps. These are the benchmarks against which everything else is tested.</p>
+<p><em>Bridge equation with principal components.</em> The AR(1)-completed, quarterly-aggregated indicators are standardized, winsorized at four standard deviations and reduced to their first two principal components, which are regressed on the target by OLS. This is the classical institutional bridge model with a factor step to keep the regression parsimonious.</p>
+<p><em>MIDAS.</em> A single-regressor MIDAS with twelve monthly lags and exponential Almon weights, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>q</mi></msub><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mn>11</mn></msubsup><msub><mi>w</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>x</mi><mrow><mi>m</mi><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>ℓ</mi><mo>−</mo><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>ε</mi><mi>q</mi></msub></mrow><annotation encoding="application/x-tex">y_q = \beta_0 + \beta_1 \sum_{j=0}^{11} w_j(\theta)\, x_{m(q)-\ell-j} + \varepsilon_q</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>∝</mo><mrow><mi mathvariant="normal">exp</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mi>j</mi><mo>+</mo><msub><mi>θ</mi><mn>2</mn></msub><msup><mi>j</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">w_j(\theta) \propto \exp(\theta_1 j + \theta_2 j^2)</annotation></semantics></math>. The regressor <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> is the cross-sectional mean of the standardized monthly indicators, a crude common factor that tolerates the ragged edge; <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math> is the number of months still missing in the target quarter, and the parameters are estimated by nonlinear least squares separately for each <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>.</p>
+<p><em>Mixed-frequency dynamic factor model.</em> One common factor following an AR(1), AR(1) idiosyncratic components, and the quarterly target linked to the monthly factor through the Mariano-Murasawa aggregation, estimated by EM on the standardized panel (statsmodels <code>DynamicFactorMQ</code>). The nowcast is the smoothed estimate of the target in the third month of the quarter (or in the target month for CPI, where the target enters the monthly panel). Parameters are re-estimated once a year and whenever the set of usable series changes; at every other origin the state is re-smoothed with the stored parameters. This mimics production practice and makes the news decomposition well defined.</p>
+<p><em>Elastic net.</em> Regularized regression on the same aggregated features as the bridge model, with the penalty mix chosen among <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>0.1</mn><mo>,</mo><mn>0.5</mn><mo>,</mo><mn>0.9</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{0.1, 0.5, 0.9\}</annotation></semantics></math> and the penalty level by time-series cross-validation on the training window.</p>
+<p><em>LightGBM.</em> Gradient boosting with shallow trees (four leaves, 300 trees, learning rate 0.03, strong subsampling), a deliberately regularized configuration for a sample of a few dozen quarters. We expect it to overfit the quarterly target and include it to document that.</p>
+<h2 data-number="4.3" id="prediction-intervals"><span class="header-section-number">4.3</span> Prediction intervals</h2>
+<p>For every model, feature set and origin we form an 80% interval as the point nowcast plus or minus the 80% quantile of the absolute errors of all target periods <em>already published</em> at that origin, for the same model and origin type. The quantile is thus computed from the past only; a nowcast made at the end of the first month of 2020Q2 uses the errors of periods whose actuals had been released by then. This is the split-conformal construction applied to a growing calibration set; its coverage should be close to nominal if errors are roughly exchangeable, and we report empirical coverage as a check.</p>
+<h2 data-number="4.4" id="evaluation-design"><span class="header-section-number">4.4</span> Evaluation design</h2>
+<p>The backtest is expanding-window pseudo-real-time from 2015Q1 (2015M1 for CPI) to the last period published at the information date. For each GDP quarter there are four origins: the end of each of its three months (M1, M2, M3) and the day before the NESDC release (PR). For each CPI month there are two: the end of the month (M0) and the day before the release (PR). Accuracy is summarized by the root mean squared forecast error (RMSFE) and the mean absolute error over the full sample and within three regimes, pre-COVID (2015 to 2019), COVID (2020 to 2021) and post-COVID (2022 onward). Each model is compared with the AR benchmark at the same origin with the Diebold-Mariano test on squared errors, using the Harvey-Leybourne-Newbold small-sample correction; with 46 quarterly observations the test has limited power, and we read it accordingly.</p>
+<p>The ablation keeps the model fixed and varies the feature set: hard data only, hard data plus one alternative family at a time (Trends, lights, NO2, online prices), and everything together including mobility. The ratio of RMSFE to the hard-data-only RMSFE is the marginal value of that family. The bridge and elastic-net models run the full grid; MIDAS, LightGBM and the DFM run the two extremes.</p>
+<h2 data-number="4.5" id="news-decomposition"><span class="header-section-number">4.5</span> News decomposition</h2>
+<p>When new data arrive between two origins the DFM nowcast changes. With parameters held fixed, the change is a linear function of the forecast errors (“news”) of the newly released observations, with weights given by the Kalman gain [Bańbura and Modugno, 2014]. We use the implementation in statsmodels to attribute the revision of the current-quarter nowcast between the end of the quarter and the information date to each releasing series. The decomposition is reported on the dashboard and in Section 5.5.</p>
+<h1 data-number="5" id="results"><span class="header-section-number">5</span> Results</h1>
+<p>All numbers below are produced from synthetic data (SYNTHETIC-DATA RUN) and are read as a test of the pipeline’s behaviour.</p>
+<h2 data-number="5.1" id="gdp"><span class="header-section-number">5.1</span> GDP</h2>
+<p>Table 2 reports the RMSFE of every model at each origin for the hard-data-only and the all-data feature sets, with Diebold-Mariano stars against the AR benchmark at the same origin. Figure 7 shows the same information for the all-data set by origin, and Figure 8 plots the nowcasts at the pre-release origin against the actuals with the conformal band of the best model.</p>
+<div class="tbl"><p class="tcap"><b>Table 2.</b> GDP growth (y-o-y, pp): RMSFE by model, feature set and origin, full backtest sample. Columns give the feature set (hard: hard data only; all: all data) and the origin. Stars mark Diebold-Mariano rejections of equal squared-error loss against AR at the same origin (* 10%, ** 5%, *** 1%). Random walk and AR use no indicators.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th style="text-align: right;">M1</th>
+<th style="text-align: right;">M2</th>
+<th style="text-align: right;">M3</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">hard M1</th>
+<th style="text-align: right;">hard M2</th>
+<th style="text-align: right;">hard M3</th>
+<th style="text-align: right;">hard PR</th>
+<th style="text-align: right;">all M1</th>
+<th style="text-align: right;">all M2</th>
+<th style="text-align: right;">all M3</th>
+<th style="text-align: right;">all PR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td style="text-align: right;">3.45</td>
+<td style="text-align: right;">2.64</td>
+<td style="text-align: right;">2.64</td>
+<td style="text-align: right;">2.64</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td style="text-align: right;">2.97</td>
+<td style="text-align: right;">2.54</td>
+<td style="text-align: right;">2.54</td>
+<td style="text-align: right;">2.54</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.27*</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">1.35</td>
+<td style="text-align: right;">1.38</td>
+<td style="text-align: right;">2.45*</td>
+<td style="text-align: right;">1.87</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">1.66</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.97</td>
+<td style="text-align: right;">1.93</td>
+<td style="text-align: right;">1.55</td>
+<td style="text-align: right;">1.62</td>
+<td style="text-align: right;">2.97</td>
+<td style="text-align: right;">1.92</td>
+<td style="text-align: right;">1.64</td>
+<td style="text-align: right;">1.66</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.29*</td>
+<td style="text-align: right;">1.75</td>
+<td style="text-align: right;">1.59</td>
+<td style="text-align: right;">1.62*</td>
+<td style="text-align: right;">2.89</td>
+<td style="text-align: right;">2.26</td>
+<td style="text-align: right;">2.23</td>
+<td style="text-align: right;">2.24</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.38**</td>
+<td style="text-align: right;">1.46</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">1.17*</td>
+<td style="text-align: right;">2.55**</td>
+<td style="text-align: right;">2.05*</td>
+<td style="text-align: right;">1.95**</td>
+<td style="text-align: right;">1.98**</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.34*</td>
+<td style="text-align: right;">1.92*</td>
+<td style="text-align: right;">1.85*</td>
+<td style="text-align: right;">1.84*</td>
+<td style="text-align: right;">2.38***</td>
+<td style="text-align: right;">2.02*</td>
+<td style="text-align: right;">1.88**</td>
+<td style="text-align: right;">1.82**</td>
+</tr>
+</tbody>
+</table></div></div>
+<figure>
+<img loading="lazy" src="figures/fig_rmsfe_gdp_yoy.png" alt="GDP: RMSFE by model and origin, all-data feature set." />
+<figcaption aria-hidden="true"><b>Figure 7.</b> GDP: RMSFE by model and origin, all-data feature set.</figcaption>
+</figure>
+<figure>
+<img loading="lazy" src="figures/fig_nowcast_gdp_yoy.png" alt="GDP: nowcasts at the pre-release origin against actuals." />
+<figcaption aria-hidden="true"><b>Figure 8.</b> GDP: nowcasts at the pre-release origin against actuals.</figcaption>
+</figure>
+<p>Three features of the table are what a working pipeline should produce. First, accuracy improves monotonically as the quarter’s data arrive: for every indicator model the RMSFE at the pre-release origin is below that at the end of the first month, whereas the benchmarks improve only when the previous quarter’s GDP is published. The pre-release origin adds little beyond the end of the third month in the synthetic economy because its indicators are persistent enough for the AR(1) completion of the final month to be accurate; on real data, where the third month often carries the news, the gap should be larger. Second, the best indicator model at the pre-release origin is the elastic net on hard data + online prices, with an RMSFE of 1.12 pp against 2.54 for the AR benchmark, a ratio of 0.44. Third, the gains are not uniform over time. Table 3 splits the pre-release RMSFE by regime for the all-data set: before COVID the synthetic economy is close to its trend and the autoregressive benchmark is hard to beat (AR 0.87 versus bridge 0.86 and DFM 0.85); during the COVID quarters the benchmark error explodes to 5.47 pp while the indicator models stay between 2.40 (MIDAS) and 4.71 (DFM); after COVID the elastic net reaches 0.98 against 1.51. This is the pattern the nowcasting literature reports on real data, where the value of timely indicators is concentrated in turning points, and it is reassuring that the engine reproduces it from a data-generating process in which the indicators load on the same factor as GDP.</p>
+<div class="tbl"><p class="tcap"><b>Table 3.</b> GDP growth: RMSFE at the pre-release origin by regime, all-data feature set (benchmarks use no indicators).</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th style="text-align: right;">full sample</th>
+<th style="text-align: right;">pre-COVID</th>
+<th style="text-align: right;">COVID</th>
+<th style="text-align: right;">post-COVID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td style="text-align: right;">2.64</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">5.56</td>
+<td style="text-align: right;">1.82</td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td style="text-align: right;">2.54</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">5.47</td>
+<td style="text-align: right;">1.51</td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">0.86</td>
+<td style="text-align: right;">3.27</td>
+<td style="text-align: right;">1.22</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">2.40</td>
+<td style="text-align: right;">1.70</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td style="text-align: right;">2.24</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">4.71</td>
+<td style="text-align: right;">1.49</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">4.27</td>
+<td style="text-align: right;">0.98</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td style="text-align: right;">1.82</td>
+<td style="text-align: right;">1.05</td>
+<td style="text-align: right;">3.79</td>
+<td style="text-align: right;">0.92</td>
+</tr>
+</tbody>
+</table></div></div>
+<p>LightGBM behaves as expected for a sample of this size: competitive during the COVID quarters and after, where a few extreme observations dominate the squared loss and a piecewise fit pays, but the weakest indicator model before COVID (1.05 against 0.86 for the bridge equation), where the signal is small and smooth. The DFM is not the most accurate model in the synthetic race, which is not surprising when the true data-generating process is a one-factor model whose aggregated principal components are an almost sufficient statistic; its advantages, native handling of missing data and the news decomposition, show up in the ablation and in Section 5.5 rather than in the headline RMSFE.</p>
+<h2 data-number="5.2" id="cpi"><span class="header-section-number">5.2</span> CPI</h2>
+<p>Table 4 reports the monthly results. The autoregressive benchmark is strong for inflation, whose year-on-year rate is persistent, and at the end-of-month origin none of the indicator models beats it, for the mechanical reason noted in Section 3.2: at that origin the fast indicators for the month itself are not yet published and their AR(1) extrapolation adds nothing beyond what the target’s own history contains. The pre-release origin, five days later, is where the fast data matter. There the elastic net with all data reaches an RMSFE of 0.44 pp against 0.81 for the benchmark, LightGBM 0.48 and the DFM 0.74; with hard data only the elastic net is at 0.55, so about half of its gain comes from the fast official series (retail fuel, farm prices) and the rest from the alternative data, mostly the online price index, which in the synthetic economy tracks the month’s inflation innovation by construction. The bridge model is inadequate for a monthly target (its principal components discard the one or two series that carry the signal), which the Diebold-Mariano test flags at any conventional level; the DFM, the elastic net and LightGBM are the relevant comparison. Unlike GDP, the CPI gains are present in every regime (Table 5), because the fast price data are informative in calm months as well as in 2022. Figure 9 plots the CPI nowcasts.</p>
+<div class="tbl"><p class="tcap"><b>Table 4.</b> Headline CPI inflation (y-o-y, pp): RMSFE by model, feature set (hard: hard data only; all: all data) and origin, with Diebold-Mariano stars against AR at the same origin.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th style="text-align: right;">M0</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">hard M0</th>
+<th style="text-align: right;">hard PR</th>
+<th style="text-align: right;">all M0</th>
+<th style="text-align: right;">all PR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td style="text-align: right;">0.82</td>
+<td style="text-align: right;">0.82</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">1.27***</td>
+<td style="text-align: right;">1.17***</td>
+<td style="text-align: right;">1.22***</td>
+<td style="text-align: right;">1.04**</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.74**</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.74***</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.88**</td>
+<td style="text-align: right;">0.55**</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: right;">0.44***</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.84*</td>
+<td style="text-align: right;">0.58**</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">0.48***</td>
+</tr>
+</tbody>
+</table></div></div>
+<div class="tbl"><p class="tcap"><b>Table 5.</b> CPI inflation: RMSFE at the pre-release origin by regime, all-data feature set.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th style="text-align: right;">full sample</th>
+<th style="text-align: right;">pre-COVID</th>
+<th style="text-align: right;">COVID</th>
+<th style="text-align: right;">post-COVID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td style="text-align: right;">0.82</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">1.02</td>
+<td style="text-align: right;">0.92</td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">1.03</td>
+<td style="text-align: right;">0.88</td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td style="text-align: right;">1.04</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.98</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">0.85</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">0.36</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.49</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.50</td>
+</tr>
+</tbody>
+</table></div></div>
+<figure>
+<img loading="lazy" src="figures/fig_nowcast_cpi_yoy.png" alt="CPI: nowcasts at the pre-release origin against actuals." />
+<figcaption aria-hidden="true"><b>Figure 9.</b> CPI: nowcasts at the pre-release origin against actuals.</figcaption>
+</figure>
+<h2 data-number="5.3" id="the-marginal-value-of-each-alternative-data-family"><span class="header-section-number">5.3</span> The marginal value of each alternative data family</h2>
+<p>Tables 6 and 7 and Figure 10 report the ablation: the RMSFE of each model with hard data plus one alternative family, relative to the same model on hard data only, at the pre-release origin.</p>
+<div class="tbl"><p class="tcap"><b>Table 6.</b> GDP growth: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model (46 quarters).</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th>feature set</th>
+<th style="text-align: right;">RMSFE</th>
+<th style="text-align: right;">relative to hard only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bridge (PCA)</td>
+<td>hard only</td>
+<td style="text-align: right;">1.38</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">1.59</td>
+<td style="text-align: right;">1.15</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">1.37</td>
+<td style="text-align: right;">0.99</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">1.39</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">1.26</td>
+<td style="text-align: right;">0.91</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">1.20</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td>hard only</td>
+<td style="text-align: right;">1.62</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">1.66</td>
+<td style="text-align: right;">1.03</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td>hard only</td>
+<td style="text-align: right;">1.62</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">2.24</td>
+<td style="text-align: right;">1.38</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td>hard only</td>
+<td style="text-align: right;">1.17</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">1.21</td>
+<td style="text-align: right;">1.03</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">1.85</td>
+<td style="text-align: right;">1.58</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">1.18</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">1.12</td>
+<td style="text-align: right;">0.96</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">1.69</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td>hard only</td>
+<td style="text-align: right;">1.84</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">1.82</td>
+<td style="text-align: right;">0.99</td>
+</tr>
+</tbody>
+</table></div></div>
+<div class="tbl"><p class="tcap"><b>Table 7.</b> CPI inflation: RMSFE at the pre-release origin by feature set, and ratio to the hard-data-only RMSFE for the same model (141 months).</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th>feature set</th>
+<th style="text-align: right;">RMSFE</th>
+<th style="text-align: right;">relative to hard only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bridge (PCA)</td>
+<td>hard only</td>
+<td style="text-align: right;">1.17</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">1.08</td>
+<td style="text-align: right;">0.92</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">1.31</td>
+<td style="text-align: right;">1.12</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">1.09</td>
+<td style="text-align: right;">0.93</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">0.69</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">1.04</td>
+<td style="text-align: right;">0.89</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td>hard only</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.99</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td>hard only</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">0.98</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">0.99</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">0.82</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.79</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td>hard only</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">0.59</td>
+<td style="text-align: right;">1.01</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">0.59</td>
+<td style="text-align: right;">1.01</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.86</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.83</td>
+</tr>
+</tbody>
+</table></div></div>
+<figure>
+<img loading="lazy" src="figures/fig_ablation.png" alt="Relative RMSFE of each feature set versus hard data only." />
+<figcaption aria-hidden="true"><b>Figure 10.</b> Relative RMSFE of each feature set versus hard data only.</figcaption>
+</figure>
+<p>The synthetic ablation illustrates a result that is easy to forget when “alternative data” is treated as a block: adding a noisy or short series to a linear model can hurt. In the synthetic economy the Google Trends topics load on the common factor but carry their own COVID-era level shifts and much idiosyncratic noise, and the lights series starts only in 2013; under the history-for-breadth rule, switching them on shortens the training window or adds regressors with little signal, and the bridge and elastic-net RMSFE ratios rise above one for those families (bridge with Trends 1.15, elastic net with lights 1.58). The online price index, which by construction tracks the target’s price process, is the one family that helps the GDP bridge model (0.91) and, as the CPI panel shows, the one that pays for inflation: relative RMSFE 0.82 for the elastic net and 0.86 for LightGBM, with the full set at 0.79 and 0.83, while lights, NO2 and Trends leave the CPI models essentially unchanged. The DFM, which does not need balanced panels, is affected differently: its all-data ratio is 1.38, driven by the level shifts in the mobility and tourism-related series during 2020 to 2021 that a one-factor model must absorb into the factor. None of these magnitudes transfer to Thailand; the point of the exercise is that the pipeline resolves the marginal value of each family separately and that the answer can be negative, so that the real-data run can discard families that do not pay for themselves.</p>
+<h2 data-number="5.4" id="interval-calibration"><span class="header-section-number">5.4</span> Interval calibration</h2>
+<p>Tables 8 and 9 report the empirical coverage and average width of the 80% conformal intervals at the pre-release origin. Coverage should be close to 0.80 if past nowcast errors are representative of future ones; departures below nominal are expected across a regime change, since the calibration set at the start of 2020 contained only calm years.</p>
+<div class="tbl"><p class="tcap"><b>Table 8.</b> GDP growth: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin (38 quarters after the calibration window).</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th>feature set</th>
+<th style="text-align: right;">coverage</th>
+<th style="text-align: right;">width (pp)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td>–</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">3.41</td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td>–</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">3.61</td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td>hard only</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">2.78</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">2.44</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td>hard only</td>
+<td style="text-align: right;">0.61</td>
+<td style="text-align: right;">3.32</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">3.52</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td>hard only</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">2.83</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">2.81</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td>hard only</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">2.63</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">2.57</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td>hard only</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">3.15</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">3.03</td>
+</tr>
+</tbody>
+</table></div></div>
+<div class="tbl"><p class="tcap"><b>Table 9.</b> CPI inflation: empirical coverage and mean width (pp) of 80% conformal intervals at the pre-release origin (133 months after the calibration window).</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th>feature set</th>
+<th style="text-align: right;">coverage</th>
+<th style="text-align: right;">width (pp)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td>–</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">1.60</td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td>–</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">1.50</td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td>hard only</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">2.47</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: right;">2.79</td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td>hard only</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">1.40</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">1.52</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td>hard only</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">1.42</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">1.34</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td>hard only</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">1.38</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">1.12</td>
+</tr>
+</tbody>
+</table></div></div>
+<p>Coverage for the GDP models lies between 0.61 and 0.79 at the pre-release origin and for the CPI models between 0.71 and 0.92, with the undercoverage concentrated in 2020 as expected. The intervals of the indicator models are narrower than the benchmark’s where the models are more accurate, which is the property one wants from a calibrated band: the width reflects the model’s own past errors, not a fixed multiple of a residual variance.</p>
+<h2 data-number="5.5" id="the-current-nowcast-and-its-news"><span class="header-section-number">5.5</span> The current nowcast and its news</h2>
+<p>At the information date, 2026-11-05, the first unpublished GDP quarter is 2026Q3 and the first unpublished CPI month is 2026-10. Table 10 lists the nowcast of every model with its 80% band; the headline model is the one with the lowest full-sample RMSFE at the pre-release origin. The headline GDP nowcast is 2.62 percent (1.23 to 4.01) from enet (hard_only), and the headline CPI nowcast is 2.31 percent (1.76 to 2.86) from enet (all).</p>
+<div class="tbl"><p class="tcap"><b>Table 10.</b> Nowcasts (%) at the information date, with 80% conformal bands, by model and feature set. The headline nowcast of each target is in bold; a blank cell means the model is not run on that feature set for that target.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>model</th>
+<th>feature set</th>
+<th style="text-align: right;">GDP 2026Q3</th>
+<th style="text-align: right;">GDP 80% band</th>
+<th style="text-align: right;">CPI 2026-10</th>
+<th style="text-align: right;">CPI 80% band</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random walk</td>
+<td>–</td>
+<td style="text-align: right;">4.04</td>
+<td style="text-align: right;">2.17–5.90</td>
+<td style="text-align: right;">1.99</td>
+<td style="text-align: right;">1.23–2.75</td>
+</tr>
+<tr>
+<td>AR(p)</td>
+<td>–</td>
+<td style="text-align: right;">3.72</td>
+<td style="text-align: right;">1.66–5.79</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.27–2.74</td>
+</tr>
+<tr>
+<td>Bridge (PCA)</td>
+<td>hard only</td>
+<td style="text-align: right;">2.74</td>
+<td style="text-align: right;">1.16–4.33</td>
+<td style="text-align: right;">2.07</td>
+<td style="text-align: right;">0.65–3.48</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">2.67</td>
+<td style="text-align: right;">1.25–4.10</td>
+<td style="text-align: right;">1.96</td>
+<td style="text-align: right;">0.49–3.43</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">2.77</td>
+<td style="text-align: right;">1.43–4.11</td>
+<td style="text-align: right;">2.08</td>
+<td style="text-align: right;">0.38–3.78</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">2.50</td>
+<td style="text-align: right;">0.91–4.08</td>
+<td style="text-align: right;">1.92</td>
+<td style="text-align: right;">0.60–3.24</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">2.62</td>
+<td style="text-align: right;">1.19–4.05</td>
+<td style="text-align: right;">2.23</td>
+<td style="text-align: right;">1.11–3.35</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">2.40</td>
+<td style="text-align: right;">1.08–3.72</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">0.66–3.29</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td>hard only</td>
+<td style="text-align: right;">3.42</td>
+<td style="text-align: right;">1.31–5.54</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">3.22</td>
+<td style="text-align: right;">1.15–5.28</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>DFM (mixed-freq.)</td>
+<td>hard only</td>
+<td style="text-align: right;">3.68</td>
+<td style="text-align: right;">2.01–5.34</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">1.26–2.71</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">3.39</td>
+<td style="text-align: right;">1.78–5.00</td>
+<td style="text-align: right;">1.94</td>
+<td style="text-align: right;">1.18–2.70</td>
+</tr>
+<tr>
+<td>Elastic net</td>
+<td>hard only</td>
+<td style="text-align: right;"><strong>2.62</strong></td>
+<td style="text-align: right;">1.23–4.01</td>
+<td style="text-align: right;">1.47</td>
+<td style="text-align: right;">0.76–2.18</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;">2.51</td>
+<td style="text-align: right;">1.20–3.82</td>
+<td style="text-align: right;">1.57</td>
+<td style="text-align: right;">0.87–2.27</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;">2.62</td>
+<td style="text-align: right;">1.30–3.95</td>
+<td style="text-align: right;">1.45</td>
+<td style="text-align: right;">0.74–2.17</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;">2.07</td>
+<td style="text-align: right;">0.68–3.46</td>
+<td style="text-align: right;">1.49</td>
+<td style="text-align: right;">0.79–2.20</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;">2.61</td>
+<td style="text-align: right;">1.27–3.95</td>
+<td style="text-align: right;">2.32</td>
+<td style="text-align: right;">1.76–2.89</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">2.07</td>
+<td style="text-align: right;">0.75–3.39</td>
+<td style="text-align: right;"><strong>2.31</strong></td>
+<td style="text-align: right;">1.76–2.86</td>
+</tr>
+<tr>
+<td>LightGBM</td>
+<td>hard only</td>
+<td style="text-align: right;">2.94</td>
+<td style="text-align: right;">1.37–4.51</td>
+<td style="text-align: right;">1.71</td>
+<td style="text-align: right;">0.99–2.44</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + Trends</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">1.81</td>
+<td style="text-align: right;">1.07–2.54</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + lights</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">1.73</td>
+<td style="text-align: right;">0.96–2.51</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + NO2</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">1.60</td>
+<td style="text-align: right;">0.88–2.33</td>
+</tr>
+<tr>
+<td></td>
+<td>hard + online prices</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.66</td>
+<td style="text-align: right;">2.04–3.28</td>
+</tr>
+<tr>
+<td></td>
+<td>all</td>
+<td style="text-align: right;">3.10</td>
+<td style="text-align: right;">1.56–4.65</td>
+<td style="text-align: right;">2.43</td>
+<td style="text-align: right;">1.89–2.97</td>
+</tr>
+</tbody>
+</table></div></div>
+<figure>
+<img loading="lazy" src="figures/fig_evolution_gdp_yoy.png" alt="Evolution of the GDP nowcast across origins." />
+<figcaption aria-hidden="true"><b>Figure 11.</b> Evolution of the GDP nowcast across origins.</figcaption>
+</figure>
+<p>Figure 11 traces the GDP nowcast of the core models across the four origins, from the end of the quarter’s first month to the information date, with the headline model’s band. Figure 12 and Table 11 decompose the change in the all-data DFM nowcast between the end of the quarter and the information date into the contribution of each series that published a new observation in between: with the parameters fixed, the revision is the weighted sum of the surprises in those releases, and the weights are the Kalman gains the model assigns to each series. In the synthetic run the decomposition sums to the observed revision to within rounding, which is the check that matters for the implementation; the sign and size of each bar are properties of the synthetic loadings.</p>
+<figure>
+<img loading="lazy" src="figures/fig_news_gdp.png" alt="News decomposition of the GDP nowcast revision (all-data DFM)." />
+<figcaption aria-hidden="true"><b>Figure 12.</b> News decomposition of the GDP nowcast revision (all-data DFM).</figcaption>
+</figure>
+<div class="tbl"><p class="tcap"><b>Table 11.</b> News decomposition of the all-data DFM nowcast revision. Releases: new observations of the series between the two origins; surprise: the released value minus the model’s previous forecast of it, summed over those releases, in the series’ own transformed units (Table 1); impact: the resulting change in the nowcast, in percentage points.</p><div class="tscroll"><table>
+<thead>
+<tr>
+<th>series</th>
+<th style="text-align: right;">releases</th>
+<th style="text-align: right;">surprise</th>
+<th style="text-align: right;">impact (pp)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google Trends: travel / hotel booking</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">−29.32</td>
+<td style="text-align: right;">−0.109</td>
+</tr>
+<tr>
+<td>Google Trends: unemployment / job search</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">28.19</td>
+<td style="text-align: right;">−0.040</td>
+</tr>
+<tr>
+<td>New vehicle registrations</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">−8.29</td>
+<td style="text-align: right;">−0.037</td>
+</tr>
+<tr>
+<td>Google Trends: loan / borrowing</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">12.08</td>
+<td style="text-align: right;">−0.016</td>
+</tr>
+<tr>
+<td>Merchandise imports (USD)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">−5.82</td>
+<td style="text-align: right;">−0.015</td>
+</tr>
+<tr>
+<td>Expressway traffic volume</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">−2.03</td>
+<td style="text-align: right;">−0.010</td>
+</tr>
+<tr>
+<td>Electricity consumption</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">−0.71</td>
+<td style="text-align: right;">−0.008</td>
+</tr>
+<tr>
+<td>AOT airport passengers</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.75</td>
+<td style="text-align: right;">−0.003</td>
+</tr>
+<tr>
+<td>Google Trends: car installment</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">−0.002</td>
+</tr>
+<tr>
+<td>International tourist arrivals</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">8.35</td>
+<td style="text-align: right;">−0.002</td>
+</tr>
+<tr>
+<td>Google Trends: prices / fuel price</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">−1.20</td>
+<td style="text-align: right;">−0.001</td>
+</tr>
+<tr>
+<td>Farm price index</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">−0.09</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr>
+<td>Tropospheric NO2 column, industrial provinces</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">−0.41</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr>
+<td>Retail diesel price (monthly average)</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">−4.40</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr>
+<td>PromptPay transaction value</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr>
+<td>Private Investment Index</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr>
+<td>Online price index</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.32</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr>
+<td>Manufacturing Production Index</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr>
+<td>Commercial bank loans outstanding</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.23</td>
+<td style="text-align: right;">0.003</td>
+</tr>
+<tr>
+<td>Merchandise exports (USD)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.90</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td>Nighttime lights radiance, national sum</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2.38</td>
+<td style="text-align: right;">0.015</td>
+</tr>
+<tr>
+<td>Private Consumption Index</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.67</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+</tbody>
+</table></div></div>
+<h1 data-number="6" id="robustness"><span class="header-section-number">6</span> Robustness</h1>
+<p>Several choices in the pipeline are defaults rather than findings, and each is exposed as a parameter so that the real-data run can vary it.</p>
+<p><em>History-for-breadth rule.</em> The 24-quarter (48-month) minimum training window determines when a short alternative series enters the linear models. A looser rule admits series earlier at the cost of fewer training rows; a stricter rule approaches the hard-data-only result. The DFM provides the limiting case in which every series is used from its first observation.</p>
+<p><em>Refit frequency.</em> The DFM is re-estimated annually; re-estimating at every origin is roughly ten times slower and, in the synthetic run, changes nowcasts by less than the width of the intervals (it can be enabled with <code>DFM(refit="origin")</code>). The MIDAS weights and the regularization path of the elastic net are re-estimated at every origin.</p>
+<p><em>Factor count and lag order.</em> The synthetic economy has one factor, so one factor is correct by construction; the real data will need the usual information-criterion check (Bai and Ng, 2002) and at least a two-factor comparison, since Thai activity has a distinct external-demand component (exports, tourism) and a domestic one.</p>
+<p><em>Seeds.</em> The synthetic results depend on the random seed of the generator. We report one seed; <code>make synthetic --seed N</code> followed by <code>make eval</code> reproduces the tables for another, and the pattern of findings (monotone improvement across origins, gains concentrated in the COVID regime, mixed marginal value of noisy families) held across the seeds we tried while developing the code. A systematic multi-seed study is a one-line loop and is left for the real-data stage, where it is not needed.</p>
+<p><em>Loss function.</em> All comparisons use squared error. The MAE columns in the stored summaries tell the same story in the synthetic run; on real data the COVID quarters will dominate the squared loss and MAE is the more honest headline.</p>
+<h1 data-number="7" id="limitations"><span class="header-section-number">7</span> Limitations</h1>
+<p><em>The data are synthetic.</em> This is the overriding limitation of the present draft. The synthetic economy was built to stress the machinery, not to resemble Thailand’s business cycle beyond the timing of its crises and the size of a few headline numbers. Every quantitative statement in Section 5 should be re-derived from the real files; the text is written so that the reasoning survives that replacement, but the conclusions may not.</p>
+<p><em>No real-time vintages.</em> Even with real data the evaluation is pseudo-real-time: final values with reconstructed publication dates, rather than the values that were actually published on each date. For GDP, revisions are material and systematically related to the cycle, so an evaluation on final data overstates the accuracy of every model including the benchmark. The remedy is to collect the first-release value from each NESDC press release since 2015 (about 45 documents), store it as the “actual” for scoring, and keep the final series for estimation; the data layer already supports a per-observation publication date and only needs a vintage column.</p>
+<p><em>Approximate release calendar.</em> The publication lags are typical values. Agencies occasionally publish early or late, and some change their calendars; the exact dates should be scraped or entered by hand. The error from this approximation is small for slow series and matters for the fast ones around the pre-release origin.</p>
+<p><em>Short samples and test power.</em> Forty-six quarterly observations, eight of them in the COVID regime, give the Diebold-Mariano test little power and make the regime split fragile; the monthly CPI evaluation, with 141 observations, is more informative statistically and is where machine learning methods have room to show an advantage.</p>
+<p><em>Alternative data quality.</em> Google Trends indices are rescaled per query and drift when the comparison baseline changes; nighttime lights need careful cloud and lunar corrections; scraped prices need a stable basket and attention to terms of service; NO2 reflects weather as much as activity. The pipeline treats them as given; a real-data study must document each construction.</p>
+<p><em>Model coverage.</em> The race omits several standard entries: a Bayesian VAR, a factor-augmented MIDAS, a nonlinear DFM, and forecast combinations. The last is the most useful addition for a production system and can be computed from the stored backtest table without re-estimation.</p>
+<h1 data-number="8" id="conclusion"><span class="header-section-number">8</span> Conclusion</h1>
+<p>ThaiNowcast turns a familiar research design into a tested, reproducible artifact: a registry of Thai official and alternative data with publication lags, an information-set engine that cannot leak, a race of standard and machine-learning nowcasting models that handle the ragged edge in different ways, an evaluation at several origins and across regimes with significance tests and calibrated intervals, an ablation of each alternative data family, and a news decomposition that explains every revision. On a synthetic economy with the real data’s timing and missingness the pipeline behaves as the theory says it should: accuracy improves as the period’s data arrive, the value of indicators is concentrated in turning points, noisy or short series can hurt linear models while the factor model absorbs them, and intervals built from past errors are approximately calibrated.</p>
+<p>The next step is the one the environment of this draft could not take: downloading the real files (<code>docs/data_sources.md</code> lists each one with its source), collecting first-release GDP values from the NESDC press releases, replacing the assumed lags with actual release dates, and running <code>make all</code>. Every table, figure and number in this document, including the current-quarter nowcast on the dashboard, will then describe Thailand rather than the pipeline.</p>
+<h1 class="unnumbered" id="references">References</h1>
+<p>Angelopoulos, A. N., and Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. arXiv:2107.07511.</p>
+<p>Bai, J., and Ng, S. (2002). Determining the number of factors in approximate factor models. <em>Econometrica</em>, 70(1), 191–221.</p>
+<p>Bańbura, M., Giannone, D., Modugno, M., and Reichlin, L. (2013). Now-casting and the real-time data flow. In <em>Handbook of Economic Forecasting</em>, Vol. 2A, 195–237. Elsevier.</p>
+<p>Bańbura, M., and Modugno, M. (2014). Maximum likelihood estimation of factor models on datasets with arbitrary pattern of missing data. <em>Journal of Applied Econometrics</em>, 29(1), 133–160.</p>
+<p>Cavallo, A., and Rigobon, R. (2016). The Billion Prices Project: Using online prices for measurement and research. <em>Journal of Economic Perspectives</em>, 30(2), 151–178.</p>
+<p>Choi, H., and Varian, H. (2012). Predicting the present with Google Trends. <em>Economic Record</em>, 88(s1), 2–9.</p>
+<p>Diebold, F. X., and Mariano, R. S. (1995). Comparing predictive accuracy. <em>Journal of Business &amp; Economic Statistics</em>, 13(3), 253–263.</p>
+<p>Ghysels, E., Santa-Clara, P., and Valkanov, R. (2004). The MIDAS touch: Mixed data sampling regression models. CIRANO Working Paper 2004s-20.</p>
+<p>Giannone, D., Reichlin, L., and Small, D. (2008). Nowcasting: The real-time informational content of macroeconomic data. <em>Journal of Monetary Economics</em>, 55(4), 665–676.</p>
+<p>Harvey, D., Leybourne, S., and Newbold, P. (1997). Testing the equality of prediction mean squared errors. <em>International Journal of Forecasting</em>, 13(2), 281–291.</p>
+<p>Henderson, J. V., Storeygard, A., and Weil, D. N. (2012). Measuring economic growth from outer space. <em>American Economic Review</em>, 102(2), 994–1028.</p>
+<p>Ke, G., et al. (2017). LightGBM: A highly efficient gradient boosting decision tree. <em>Advances in Neural Information Processing Systems 30 (NIPS 2017)</em>.</p>
+<p>Mariano, R. S., and Murasawa, Y. (2003). A new coincident index of business cycles based on monthly and quarterly series. <em>Journal of Applied Econometrics</em>, 18(4), 427–443.</p>
+<p>NASA Earth Observatory (2017). Earth at Night: Black Marble 2012 and 2016 grayscale maps (3 km). Image records 144896 and 144897. Public domain.</p>
+<p>Román, M. O., Wang, Z., Sun, Q., Kalb, V., et al. (2018). NASA’s Black Marble nighttime lights product suite. <em>Remote Sensing of Environment</em>, 210, 113–143.</p>
+<p>Runfola, D., Anderson, A., Baier, H., Crittenden, M., et al. (2020). geoBoundaries: A global database of political administrative boundaries. <em>PLOS ONE</em>, 15(4), e0231866.</p>
+<p>Stock, J. H., and Watson, M. W. (2002). Macroeconomic forecasting using diffusion indexes. <em>Journal of Business &amp; Economic Statistics</em>, 20(2), 147–162.</p>
+<p>Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. <em>Journal of the Royal Statistical Society B</em>, 58(1), 267–288.</p>
+<p>Vovk, V., Gammerman, A., and Shafer, G. (2005). <em>Algorithmic Learning in a Random World</em>. Springer.</p>
+<p>Zou, H., and Hastie, T. (2005). Regularization and variable selection via the elastic net. <em>Journal of the Royal Statistical Society B</em>, 67(2), 301–320.</p>
+<h1 class="unnumbered" id="appendix-a-the-synthetic-economy">Appendix A: the synthetic economy</h1>
+<p>The generator (<code>thainowcast.data.synthetic</code>) draws a monthly common factor <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>t</mi></msub><annotation encoding="application/x-tex">f_t</annotation></semantics></math> as an AR(1) with coefficient 0.85 and innovation standard deviation 0.7, and adds event shocks where Thai history had them: the global financial crisis (October 2008 to September 2009, with a rebound in 2010), the floods of late 2011 (with a rebound in 2012), the political crisis of early 2014, COVID-19 (a trough of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>15</mn></mrow><annotation encoding="application/x-tex">-15</annotation></semantics></math> in April 2020, the Delta wave in the third quarter of 2021, a recovery through 2022). Trend growth is 4.3 percent until 2012, 3.2 percent from 2013 to 2019, 3.0 percent during 2020 to 2021 and 2.4 percent after. Quarterly GDP growth is the trend plus 1.1 times the quarterly mean of the factor plus Gaussian noise with standard deviation 0.5; quarter-on-quarter growth is 0.75 plus 0.9 times the change in the quarterly factor plus noise. Monthly CPI inflation is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.2</mn><mo>+</mo><mn>0.08</mn><mspace width="0.167em"></mspace><msub><mtext mathvariant="normal">oil</mtext><mi>t</mi></msub><mo>+</mo><mn>0.12</mn><mspace width="0.167em"></mspace><msub><mtext mathvariant="normal">agri</mtext><mi>t</mi></msub><mo>+</mo><msub><mi>c</mi><mi>t</mi></msub><mo>+</mo><mn>0.08</mn><msub><mi>f</mi><mrow><mi>t</mi><mo>−</mo><mn>6</mn></mrow></msub><mo>+</mo><msub><mi>ε</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">1.2 + 0.08\,\text{oil}_t + 0.12\,\text{agri}_t + c_t + 0.08 f_{t-6} + \varepsilon_t</annotation></semantics></math>, where oil and farm price growth are persistent processes with the 2008, 2015, 2020 and 2022 episodes imposed and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mi>t</mi></msub><annotation encoding="application/x-tex">c_t</annotation></semantics></math> is a slow core component.</p>
+<p>Each indicator’s growth rate is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>i</mi></msub><mo>+</mo><msub><mi>λ</mi><mi>i</mi></msub><msub><mi>f</mi><mrow><mi>t</mi><mo>−</mo><msub><mi>d</mi><mi>i</mi></msub></mrow></msub><mo>+</mo><msub><mtext mathvariant="normal">extra</mtext><mrow><mi>i</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>+</mo><msub><mi>u</mi><mrow><mi>i</mi><mo>,</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_i + \lambda_i f_{t-d_i} + \text{extra}_{i,t} + u_{i,t}</annotation></semantics></math> with an AR(1) idiosyncratic term; levels are rebuilt from the growth rates with a seasonal pattern so that the pipeline’s own transformations are exercised. Tourism and airport passengers are multiplied by a COVID collapse-and-recovery path (to 1 percent and 15 percent of baseline respectively); the Google Trends indices are bounded levels with their own COVID level shifts; nighttime lights start in April 2012, NO2 in July 2018, PromptPay in 2016, online prices in 2015, mobility runs from February 2020 to October 2022 only. The generator writes <code>synthetic_*.csv</code> files and a manifest with the seed; the loader uses them only when the real file is absent and announces every substitution.</p>
+<h1 class="unnumbered" id="appendix-b-reproducibility">Appendix B: reproducibility</h1>
+<pre><code>git clone https://github.com/thanatchon36/thainowcast &amp;&amp; cd thainowcast
+make setup          # uv venv + dependencies
+make data           # loads data/raw (real where present, synthetic_* otherwise)
+make eval           # backtest, DM tests, intervals, ablations, tables, figures
+make live           # nowcast of the current quarter / month + news
+make dashboard      # dashboard/index.html
+make paper          # paper/paper.pdf (pandoc + tectonic) and docs/paper/
+make arxiv          # paper/arxiv.tar.gz, the arXiv source bundle
+make test           # 27 tests incl. the leakage test</code></pre>
+<p>Every table in this document is an included file in <code>paper/tables/</code>, every figure a file in <code>paper/figures/</code>, and every number in the text a placeholder resolved at build time from <code>data/processed/</code>; none is typed by hand.</p>
+</article>
+<section class="cite" aria-label="How to cite"><h2>How to cite</h2><pre><code>@techreport{chongmankhong2026thainowcast,
+  author      = {Chongmankhong, Thanatchon},
+  title       = {ThaiNowcast: Pseudo-Real-Time Nowcasting of Thai GDP and Inflation with Official and Alternative Data: A reproducible pipeline, a mixed-frequency model race, and a synthetic-data validation},
+  year        = {2026},
+  type        = {Working paper},
+  doi         = {10.5281/zenodo.23995547},
+  url         = {https://thanatchon36.github.io/thainowcast/paper/}
+}</code></pre></section>
+<footer class="colophon">
+<p>The views expressed are the author’s own and do not necessarily reflect those of the Bank of Thailand. Working paper draft (SYNTHETIC-DATA RUN). Code and data: <a href="https://github.com/thanatchon36/thainowcast" class="uri">https://github.com/thanatchon36/thainowcast</a>.</p>
+<p>Rendered from <code>paper/paper.md</code> by <code>thainowcast.paper_web</code> (<code>make web</code>). Every number is resolved from the result files in <code>data/processed/</code> by the same placeholders as the PDF, which is authoritative. This run uses synthetic data throughout.</p>
+</footer>
+</div>
+</body>
+</html>

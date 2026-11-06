@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 ASOF ?= 2026-11-05
 
-.PHONY: setup data synthetic eval live dashboard app geo paper arxiv test all clean
+.PHONY: setup data synthetic eval live dashboard app geo paper web arxiv test all clean
 
 setup:          ## create venv and install the package (needs uv)
 	uv venv .venv --python 3.12
@@ -28,8 +28,11 @@ app:            ## interactive Streamlit app
 geo:            ## map and nighttime-lights figures for the paper + README banner (downloads ~15 MB into data/raw/geo/)
 	$(PY) scripts/make_geo_figures.py
 
-paper:          ## build paper/paper.tex and paper/paper.pdf (pandoc + tectonic)
+paper:          ## build paper/paper.tex, paper/paper.pdf (pandoc + tectonic) and the web reader docs/paper/
 	$(PY) -m thainowcast.cli paper
+
+web:            ## web reader only -> docs/paper/index.html (pandoc; copies the current paper.pdf)
+	$(PY) -m thainowcast.cli web
 
 arxiv: paper    ## arXiv source bundle -> paper/arxiv.tar.gz
 	$(PY) scripts/arxiv_bundle.py
